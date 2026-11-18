@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>世新同路互動地圖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: a 2.5D island map on the left, a panel with views (home, building, route) on the right; stacks on phones. QR sheet below. */
+  --sea:#D7E9EC;
+  --ink:#17211F;
+  --muted:#4C5856;
+  --card:#FFFFFF;
+  --line:#CBD8D6;
+  --soft:#F1F5F4;
+  --gate:#2E7D32;
+  --here:#D7263D;
+  --display:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#E9F1F0;color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #1F5FBF;outline-offset:2px}
+.stripe{display:flex;height:6px}.stripe i{flex:1}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:var(--card);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand b{font-family:var(--display);font-weight:900;font-size:20px}
+.brand span{color:var(--muted);font-size:14px}
+.pill-btn{border:1.5px solid var(--ink);background:var(--card);border-radius:999px;padding:5px 14px;cursor:pointer;font-weight:700;font-size:14px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:16px;padding:16px 20px;align-items:start}
+.mapwrap{position:relative;border-radius:18px;overflow:hidden;height:760px;border:1px solid var(--line);background:var(--sea)}
+#map{width:100%;height:100%;display:block;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+#map.dragging{cursor:grabbing}
+.zoom{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px}
+.zoom button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:20px;font-weight:700;cursor:pointer}
+.maphint{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.94);border-radius:10px;padding:6px 12px;font-size:13px;color:var(--muted)}
+aside{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--card);border-radius:16px;padding:16px 18px;border:1px solid var(--line)}
+.card h2{margin:0 0 8px;font-size:15px;font-weight:900;font-family:var(--display);text-wrap:balance}
+.card p{margin:0 0 8px}
+.note{font-size:13px;color:var(--muted)}
+.search{display:flex;gap:8px}
+.search input{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:#fff}
+.results{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.res{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;text-align:left;width:100%;border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:8px 10px;cursor:pointer}
+.res small{display:block;color:var(--muted);font-size:12px}
+.here-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--here)}
+.here-dot{width:10px;height:10px;border-radius:50%;background:var(--here)}
+.here-place{font-size:21px;font-weight:900;line-height:1.3;margin:2px 0 10px;font-family:var(--display)}
+.near{display:flex;flex-direction:column;gap:8px}
+.near-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--soft)}
+.near-row small{display:block;color:var(--muted);font-size:12px}
+.near-row strong{font-size:14px}
+.btn{border:none;background:var(--ink);color:#fff;border-radius:999px;padding:7px 14px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.wide{width:100%;padding:10px 14px;font-size:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row .btn{flex:1}
+.demo{display:flex;flex-direction:column;gap:6px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);font-size:13px;color:var(--muted)}
+select{padding:9px 10px;border-radius:10px;border:1.5px solid var(--line);background:#fff;width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
+.matches{margin-top:10px;display:flex;flex-direction:column}
+.match{display:flex;justify-content:space-between;gap:8px;padding:8px 2px;border:none;border-bottom:1px solid #E8EEED;cursor:pointer;background:none;text-align:left;width:100%}
+.match span:last-child{font-weight:700}
+.back{display:inline-flex;align-items:center;gap:6px;border:none;background:none;font-weight:900;font-size:15px;cursor:pointer;padding:4px 0;margin:-4px 0 8px}
+.d-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.code{min-width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:19px;color:#fff;padding:0 8px}
+.d-name{font-size:20px;font-weight:900;line-height:1.25;font-family:var(--display)}
+.zone-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;color:#fff;margin-top:2px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--ink);color:#fff}
+.tag.light{background:var(--soft);color:var(--ink);border:1px solid var(--line)}
+.floors{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.floors details{border:1px solid var(--line);border-radius:10px;background:#fff}
+.floors details[open]{background:var(--soft)}
+.floors summary{cursor:pointer;padding:8px 10px;display:flex;align-items:center;gap:8px;list-style:none}
+.floors summary::-webkit-details-marker{display:none}
+.floors summary b{min-width:52px;font-variant-numeric:tabular-nums}
+.floors summary .mini{display:flex;gap:4px;flex-wrap:wrap}
+.floors summary .mini i{font-style:normal;font-size:11px;font-weight:700;padding:1px 6px;border-radius:999px;background:var(--ink);color:#fff}
+.floors ul{margin:0;padding:0 12px 10px 30px;font-size:13px}
+.floors li.hit{font-weight:900;background:#FFF1B8;border-radius:4px}
+.construction{padding:12px;border-radius:12px;background:#FFF6D6;border:1.5px dashed #B38A00;font-weight:700}
+.qrmini{display:flex;gap:12px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.qrmini .qr{width:84px;height:84px;flex:none}
+.qr svg{width:100%;height:100%;display:block}
+.plan{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+.plan label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}
+.swap{grid-row:1/3;grid-column:2;align-self:center;width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-size:18px}
+.steps{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:0}
+.steps li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start;padding:6px 0;position:relative}
+.steps li .dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;color:#fff}
+.steps li:not(:last-child)::after{content:"";position:absolute;left:11px;top:30px;bottom:-6px;width:2px;background:var(--line)}
+.follow{margin-top:10px;padding:10px 12px;border-radius:12px;font-weight:900;color:#fff}
+.zones{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.zones .chip{justify-content:flex-start;border-radius:10px}
+.sheet{padding:0 20px 24px}
+.sheet .card{padding:18px 20px}
+.qrhead{display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between;margin-bottom:14px}
+.qrhead label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--muted);flex:1;min-width:260px}
+.qrhead input{padding:9px 10px;border-radius:10px;border:1.5px solid var(--line)}
+.qrgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.qrcard{border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;background:#fff}
+.qrcard .qr{width:132px;height:132px}
+.qrcard b{font-size:14px;line-height:1.3}
+.qrcard code{font-size:11px;color:var(--muted);word-break:break-all}
+.qrfail{font-size:12px;color:var(--muted);padding:20px 8px}
+footer{padding:0 20px 28px;font-size:12px;color:var(--muted)}
+svg text{font-family:var(--body)}
+.bld{cursor:pointer;transition:opacity .25s}
+.bld.dim{opacity:.25}
+.bld.sel .roof{stroke:#17211F;stroke-width:3}
+.bld:focus{outline:none}
+.bld:focus-visible .roof{stroke:#1F5FBF;stroke-width:4}
+.lbl{pointer-events:none;transition:opacity .25s}
+.lbl.dim{opacity:.15}
+.name{opacity:0;transition:opacity .25s}
+svg.zoomed .name,.lbl.show .name{opacity:1}
+svg.zoomed .closed-name{opacity:0}
+.lbl.show .closed-name{opacity:1}
+.pulse{transform-box:fill-box;transform-origin:center}
+@media (prefers-reduced-motion:no-preference){
+  .pulse{animation:pulse 1.6s ease-out infinite}
+  .march{animation:march 1s linear infinite}
+}
+@keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.2);opacity:0}}
+@keyframes march{to{stroke-dashoffset:-28}}
+@media (max-width:920px){
+  main{grid-template-columns:1fr;padding:12px}
+  .mapwrap{height:540px}
+  .sheet{padding:0 12px 18px}
+  header{padding:10px 12px}
+}
+</style>
+</head>
+<body>
+<div class="stripe" aria-hidden="true"><i style="background:#1F5FBF"></i><i style="background:#6E45B8"></i><i style="background:#E2A800"></i><i style="background:#E36C0A"></i><i style="background:#0E8C8C"></i><i style="background:#C2185B"></i></div>
+<header>
+  <div class="brand"><b>同路 Way for All</b><span id="t-sub">世新大學互動地圖</span></div>
+  <button class="pill-btn" id="lang" type="button">EN</button>
+</header>
+<main>
+  <div class="mapwrap">
+    <svg id="map" role="img" aria-labelledby="map-title"><title id="map-title">世新大學 2.5D 校園地圖</title></svg>
+    <div class="zoom">
+      <button type="button" id="zin" aria-label="放大">+</button>
+      <button type="button" id="zout" aria-label="縮小">−</button>
+      <button type="button" id="zfit" aria-label="顯示全校" style="font-size:14px">全</button>
+    </div>
+    <div class="maphint" id="t-hint">拖曳移動・點建築看樓層</div>
+  </div>
+  <aside id="panel"></aside>
+</main>
+<section class="sheet" aria-labelledby="qr-title">
+  <div class="card">
+    <div class="qrhead">
+      <div>
+        <h2 id="qr-title" style="margin:0 0 4px;font-size:17px;font-weight:900">各棟大樓與入口的 QR code</h2>
+        <p class="note" id="t-qrnote" style="margin:0">每個 QR code 打開時，會以那個位置當作「你在這裡」。</p>
+      </div>
+      <label for="baseurl"><span id="t-base">公開網址（按「分享」後取得）</span><input id="baseurl" type="url" inputmode="url" autocomplete="off"></label>
+    </div>
+    <div class="qrgrid" id="qrgrid"></div>
+  </div>
+</section>
+<footer id="t-foot"></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(function(){
+"use strict";
+var NS = "http://www.w3.org/2000/svg";
+var DEFAULT_BASE = "https://claude.ai/artifact/57vYjHHUX4YEkKSDFRws54";
+var lang = "zh", baseUrl = DEFAULT_BASE;
+try {
+  var sl = localStorage.getItem("shu-map-lang"); if (sl === "en" || sl === "zh") lang = sl;
+  var sb = localStorage.getItem("shu-map-base"); if (sb) baseUrl = sb;
+} catch (e) {}
+
+/* ===================== DATA ===================== */
+var ZONES = {
+  z1:{zh:"入口・新聞區", en:"Gate & Journalism", color:"#1F5FBF", shape:"●"},
+  z2:{zh:"行政・圖書區", en:"Admin & Library", color:"#6E45B8", shape:"◆"},
+  z3:{zh:"生活・廣電區", en:"Living & Broadcasting", color:"#E2A800", shape:"■", dark:true},
+  z4:{zh:"舍我・廣場區", en:"She-Wo & Plaza", color:"#E36C0A", shape:"▲"},
+  z5:{zh:"傳播・運動區", en:"Communication & Sports", color:"#0E8C8C", shape:"⬢"},
+  z6:{zh:"管理・媒體區", en:"Management & Media", color:"#C2185B", shape:"★"}
+};
+var FEATURES = [
+  {k:"gender", zh:"性別友善廁所", en:"All-gender restroom", short:"性別友善", shortEn:"All-gender", match:"性別友善廁所"},
+  {k:"acc", zh:"無障礙廁所", en:"Accessible restroom", short:"無障礙廁所", shortEn:"Accessible WC", match:"無障礙廁所"},
+  {k:"nursing", zh:"哺集乳室", en:"Nursing room", short:"哺集乳", shortEn:"Nursing", match:"哺集乳室"},
+  {k:"aed", zh:"AED", en:"AED", short:"AED", shortEn:"AED", match:"AED"},
+  {k:"elev", zh:"無障礙電梯", en:"Accessible elevator"},
+  {k:"ramp", zh:"無障礙坡道", en:"Ramp"},
+  {k:"parking", zh:"無障礙停車位", en:"Accessible parking", short:"停車位", shortEn:"Parking", match:"無障礙停車位"},
+  {k:"care", zh:"照護床", en:"Adult changing bed", short:"照護床", shortEn:"Changing bed", match:"照護床"}
+];
+
+/* parts: [cx, cy, w, h, rotation°] traced from the campus floor plan; fl: floors above ground (height only) */
+var BUILDINGS = [
+  {id:"J", code:"J", zh:"新聞大樓", en:"Journalism Building", zone:"z1", mat:"brick", parts:[[215,705,100,58,-14]], fl:5, node:"n1",
+   f:{acc:"2F・3F・4F"},
+   floors:[["5F","J503、J504數位攝影棚；J502數位輸出中心；J501色彩管理實驗室；J505攝影棚器材室"],["4F","J401~J404教室；J405器材室；無障礙廁所"],["3F","J310~J312教室；J308流行音樂工作站；J307教室；J303、J306教室；J302教學研討室；J301平面設計教室；J309教師休息室；無障礙廁所"],["2F","J221網版印刷實驗室；J222教室；J223研究生教室；J224圖傳系學會；J211、J211-1、J212~J215教師研究室；J216茶水間；J201教室；J204~J210教師研究室；J218教師休息室；無障礙廁所"],["1F","J101、J103教室；J102創意多媒體教室；J104檔案室；廁所"]]},
+  {id:"W", code:"W", zh:"世界大樓", en:"World Building", zone:"z1", mat:"brick", parts:[[385,688,52,48,-10]], fl:5, node:"n1",
+   f:{},
+   floors:[["5F","W501主機房；W502及W504圖資處辦公室；W503會議室；W505系統整合測試區；廁所"],["4F","W401教室；W402圖資處辦公室；W403圖資處辦公室；W404圖資處辦公室；廁所"],["3F","W301飛輪教室；W302休息室；廁所"],["2F","W201電訪區；W202民意調查中心；W203民意調查中心會議室；廁所"],["1F","高壓機房"]]},
+  {id:"DORM", code:"", short:"宿舍", shortEn:"Dorm", zh:"學生宿舍・諮商中心・翠谷餐廳", en:"Student Dormitory · Counseling · Restaurant", zone:"z3", mat:"brick", parts:[[478,570,48,110,40],[575,468,30,72,42]], fl:5, node:"n2",
+   f:{elev:true, aed:"宿舍管理室室外"},
+   note:{zh:"諮商中心：郵局對面樓梯上左邊、翠谷餐廳下方", en:"Counseling Center: up the stairs opposite the post office, on the left, below the Restaurant"},
+   floors:[["右棟","宿舍管理室 1F（電梯 2F，室外設AED）；女生宿舍（2F–4F）；翠谷餐廳（電梯 2F）"],["左棟","男生宿舍"],["餐廳下方","諮商中心（團體諮商室、個人諮商室、主任室、辦公區、會議監測驗室）；教官值勤室"]]},
+  {id:"ADM", code:"", short:"行政", shortEn:"Admin", zh:"行政大樓", en:"Administration Building", zone:"z2", mat:"white", parts:[[415,428,38,82,38]], fl:3, node:"n3",
+   f:{elev:true, ramp:true, gender:"3F"},
+   floors:[["3F","董事會；校長室；秘書室；主秘辦公室；稽核室；會議室；會客室；性別友善廁所"],["2F","教務處；人事室；會計室；廁所"],["1F","總務處；秘書室文書組；研究發展處；廁所"],["B1","郵局；商店；學務處（生輔組、生涯組、軍訓室、學務處本部）"]]},
+  {id:"L", code:"L", zh:"圖書館", en:"Library", zone:"z2", mat:"white", parts:[[468,268,62,62,45]], fl:6, node:"n4",
+   f:{elev:true, gender:"4F"},
+   floors:[["6F","遊戲區；KTV；電影放映區；休息區；漫畫區；咖啡吧檯區；中文書庫第五、六層；廁所"],["5F","資訊檢索區；教師著作陳列區；中西文參考館藏區；密集書庫；統計資料；學位論文；地圖；小冊子；畢業紀念冊；L501教室；L502電腦教室；中文書庫第四層；廁所"],["4F","圖書資訊長辦公室；多媒體欣賞區；舍我講堂；多語言學習資料區；特色館藏區；L401~L403錄音暨剪輯室；L404、L405教室；L406電腦教室；性別友善廁所"],["3F","西文書庫（000-999）；討論室；行政區；日文書庫；中文書庫第一、二層；廁所"],["2F","流通服務台；中西文現期期刊區；教師指定參考書區；線上公用目錄查詢區；新書展示區；展示區；行政區；廁所"],["1F","L101多功能實景棚"]]},
+  {id:"G", code:"G", zh:"通識（綜合）大樓", en:"General Building", zone:"z2", mat:"white", parts:[[528,322,52,86,45]], fl:7, node:"n4",
+   f:{elev:true, acc:"1F", care:"1F"},
+   floors:[["7F","G701教室；G702教室"],["6F","G601電腦教室；G602電腦教室；廁所"],["5F","G501教室；G502教室；G503教室；廁所"],["4F","G401教室；G402教室；G403教室；廁所"],["3F","G301教室；G302教室；G303教室；廁所"],["2F","G201教學發展中心辦公室；G202A教學發展中心放映室；G202B教學發展中心器材室；G203教學發展中心器材室；廁所"],["1F","G101檔案室；G102教學發展中心辦公及器材室；無障礙廁所（附設照護床）；廁所"],["言論廣場","English Corner；GB101圓桌影音播客直播間；Japanese Corner"]]},
+  {id:"B", code:"B", zh:"廣電大樓 B", en:"Radio & TV Center B", zone:"z3", mat:"construction", parts:[[642,402,72,38,18]], fl:4, node:"n5", f:{}, closed:true, floors:[]},
+  {id:"T", code:"T", zh:"廣電大樓 T", en:"Radio & TV Center T", zone:"z3", mat:"construction", parts:[[676,458,36,86,12]], fl:4, node:"n5", f:{}, closed:true, floors:[]},
+  {id:"R", code:"R", zh:"舍我樓教學大樓", en:"She-Wo Building", zone:"z4", mat:"brick", parts:[[705,290,112,40,-22]], fl:10, node:"n6",
+   f:{elev:true, gender:"4F", acc:"4F", nursing:"1F"},
+   note:{zh:"與 S 相通，電梯與樓梯共用", en:"Connected to S; shared elevators and stairs"},
+   floors:[["10F","R1001教室；R1002~R1003教師研究室"],["9F","R908~R909教研室；R903電腦教室；R902聯合辦公室／原資中心／撒奇萊雅族計畫辦公室；R901教室"],["8F","R804研究生自修室；R803教學研討室；R802法律系專用教室；R801實習法庭；R800法律學院讀書室；R805法律服務中心；R806法律系學會；R807世新法學陳列室；廁所"],["7F","R707英語系學會；R706中文系學會；R705廣電系學會；R704教室；R703研究生自修室；R701教室；廁所"],["6F","R607日文系學會；R606社心系學會；R605財金系學會；R604經濟系學會；R601~R603教室；廁所"],["5F","R507企管系學會；R506資管系學會；R505行管系學會；R504資傳系學會；R501~R503教室；廁所"],["4F","R406師培中心檔案室；R405觀光系學會；R404教師休息室；R401~R403教室；無障礙廁所；性別友善廁所"],["3F","R301~R303教室；廁所"],["2F","R201~R203教室；廁所"],["1F","R104教師休息室／導師資源室；R103無障礙資源中心／哺集乳室；R101~R102階梯教室；廁所"]]},
+  {id:"S", code:"S", zh:"舍我樓研究大樓", en:"Research Building", zone:"z4", mat:"brick", parts:[[768,200,58,66,-22]], fl:12, node:"n6", tower:true,
+   f:{elev:true, parking:"B2", aed:"1F 醫務室"},
+   note:{zh:"與 R 相通，可使用 R 的性別友善廁所、無障礙廁所與哺集乳室", en:"Connected to R; use R's all-gender and accessible restrooms and nursing room"},
+   floors:[["12F","S1201舍我紀念館；S1202辦公室；S1203會議室；S1204環型會議廳；廁所"],["11F","S1101日本語文學系主任辦公室；S1102中國文學系主任辦公室；S1103~S1118教師研究室；廁所"],["10F","S1001副校長辦公室；S1004~S1016教師研究室；廁所"],["9F","S901公共事務室及社會資源中心辦公室；S902企劃管考組辦公室；S903~S916教師研究室；廁所"],["8F","S801智慧財產暨傳播科技法律研究所／法律學系；S802法律學院；S804法律與智慧財產權資料中心；S803、S805~S810、S813、S815教師研究室；廁所"],["7F","S701英語學系主任辦公室；S701-2~S716教師研究室；廁所"],["6F","S601社會心理學系主任辦公室；S601-1~S601-2、S603~S616教師研究室；S602研究生自修室；廁所"],["5F","S501華語文中心主任辦公室；S501-1~S501-2教研室；S502-1~S502-2教研室；S503會議室；S504~S516教師研究室；廁所"],["4F","S401聯合辦公室（廣電、資傳、圖傳）；S402人社院辦公室；S403人社院院長辦公室；S404圖傳系主任辦公室；S405會議室；S406副校長室；廁所"],["3F","S301教學研討室；S302教研室；S303電腦教室；S304語言教室；S305教室；S306~S312教師研究室；廁所"],["2F","S201語言教室；S206英語能力檢測辦公室；S202、S204、S208~S211教師研究室；S203語言教室；S205語言教室；S207外語中心辦公室；廁所"],["1F","S101餐廳；S103廚房；S102醫務室（學務處衛保組，附設AED）"],["B1","監控室；電工室；機車停車場"],["B2","汽車停車場（附設無障礙停車位）"]]},
+  {id:"A", code:"A", zh:"大禮堂", en:"Auditorium", zone:"z5", mat:"hall", parts:[[1010,192,70,150,18]], fl:6, node:"n8",
+   f:{elev:true, ramp:true, acc:"B1", aed:"4F 體育館"},
+   floors:[["6F","A601桌球器材室；A602舞蹈器材室；A603桌球教室；A604柔道教室；A605舞蹈教室；A606光影互動教室"],["5F","體適能中心"],["4F","體育館（附設AED）"],["3F","A202教師休息室；A201良彥講堂（多功能教室）；A301教室；畢業禮服庫房；A401教室；球員休息室；世新講堂上半部；學生會"],["2F","A203會議室；世新講堂上部；廁所"],["1F","A101綠幕教學攝影棚；A102體育室；A103世新講堂"],["1F 外圍","學務處課外組（學校廣場、八風舞台附近）"],["B1","學生社團空間；無障礙廁所"],["B2","體適能教室；學生社團空間"]]},
+  {id:"V", code:"V", zh:"智能攝製基地", en:"LED Virtual Stage", zone:"z5", mat:"hangar", parts:[[1215,205,66,30,-12]], fl:2, node:"n10",
+   f:{acc:"1F"},
+   floors:[["1F","LVS智能攝製基地；梳化間；廁所；無障礙廁所"]]},
+  {id:"C", code:"C", zh:"傳播大廈", en:"Communication Building", zone:"z5", mat:"glass", parts:[[1325,118,70,88,22]], fl:6, node:"n11",
+   f:{elev:true, ramp:true, gender:"B3・4F", acc:"B1・4F"},
+   floors:[["6F","C601-1~C604教師研究室；C606~C613教師研究室；C614~C616教師研究室；C601數媒系主任辦公室；C618研究生自修室；C617研究生自修室；C605數媒系學會；廁所"],["5F","C501-1~C504教師研究室；C506~C513教師研究室；C501口傳系主任辦公室；C505會議室；C516研究生教室；C517教室；廁所"],["4F","C401-1~C404教師研究室；C401公廣系主任辦公室；C408~C415教師研究室；C416~C418教師研究室；C419教室；C405公廣系學會；C406~C407教師研究室；無障礙廁所；性別友善廁所"],["3F","C301-1~C304教師研究室；C301新聞系主任辦公室；C320教室；C319教室；C317教研室；C305~C306教師研究室；C315~C316教師研究室；C307~C314教師研究室；廁所"],["2F","C201-1新聞傳播學院副院長辦公室；C203教學研討室；C202教師研究室；C201傳管系主任辦公室；C217教研室；C218教學研討室；C219教室；C204傳管系學會；C205~C206教研室；C215~C216教師研究室；C207~C214教師研究室；廁所"],["1F","C106傳播博士學位學程博士班研究室；C102會議室；C101教室；C103新聞傳播學院聯合辦公室及院長室"],["B1","CB104教學發展中心器材室；CB105教室；CB103教室；CB106器材室；CB101階梯教室；CB107教師休息室；無障礙廁所"],["B2","CB201~CB203教室；CB205~CB206教室；CB204教師休息室"],["B3","CB301及CB303~CB305教室；CB307~CB308教室；CB302專業調光教室；CB306直播室；CB309多功能教室；性別友善廁所"]]},
+  {id:"M", code:"M", zh:"管院大樓", en:"Management Building", zone:"z6", mat:"brick", parts:[[1160,540,128,40,-18]], fl:8, node:"n13",
+   f:{elev:true, ramp:true, acc:"1F–6F", nursing:"7F", parking:"B2", aed:"1F M102"},
+   floors:[["7F","M718~M734教研室；會議室；M736教室；M701A、M701~M705教研室；M706~M717教研室；哺集乳室；廁所"],["6F","M624~M631教研室；M622資管系主任室；M621經濟系主任室；M620財金系主任室；M619觀光系主任室；M618教室；M601~M617教研室；M632會議室；M633教室；廁所；無障礙廁所"],["5F","M522~M531教研室；M521管理學院聯合辦公室及院長室；M520企管系主任室；M519行管系主任室；M518教室；M532教室；M501~M510、M512~M517教研室；M511管理學院副院長室；廁所；無障礙廁所"],["4F","M414~M417教研室；M403~M413教室；M401研究生自修室；M402研究生自修室；廁所；無障礙廁所"],["3F","M312博士生自修室；M311研究生自修室；M301~M302教室；M303~M308電腦教室；M313教師休息室；廁所；無障礙廁所"],["2F","M203教休室；M204會客室；M202多功能教室；M201國際會議廳；M205教學研討室；貴賓室；廁所；無障礙廁所"],["1.5F","國際暨兩岸事務處；中國新聞學會；印刷室；會議室"],["1F","M104教學研討室；M105影音播客直播間；M101大數據中心；M102監控室（附設AED）；服務櫃檯；自由上網區；7-ELEVEN；廁所；無障礙廁所"],["B1","機車停車場"],["B2","汽車停車場（附設無障礙停車位）"]]},
+  {id:"OM", code:"OM", zh:"全媒體大樓", en:"Omni-Media Building", zone:"z6", mat:"glass", parts:[[1035,540,42,42,-18]], fl:8, node:"n15",
+   f:{elev:true, acc:"1F"},
+   floors:[["8F","OM801動作捕捉虛擬攝影棚；設備器材室；梳化間"],["7F","世新廣播電臺（OM701~OM703世新電臺影音Studio、OM704世新電臺直播室）；廁所"],["6F","OM601 360環景投影與光雕投影專區"],["5F","音樂創作／錄音與聲音設計專區（OM501錄音與混音控制室、OM502專業錄音室、OM503專業編曲室）；廁所"],["4F","OM401、OM402直播串流綠幕棚；設備器材室；梳化間"],["3F","OM301新聞媒體專區（製播作業區、新聞編輯區、多功能雙向攝影棚）；廁所"],["2F","OM201影音試片室；行政辦公區（教學發展中心、世新廣播電臺）"],["1F","OM101直播串流實景棚；無障礙廁所"]]}
+];
+
+var NODES = {
+  g1:{p:[285,752], zh:"門1 前校門", en:"Gate 1 · Main Gate"},
+  n1:{p:[330,680], zh:"新聞大樓前", en:"Journalism Building"},
+  n2:{p:[400,590], zh:"學生宿舍前", en:"Student Dormitory"},
+  n3:{p:[470,470], zh:"行政大樓旁", en:"Administration Building"},
+  n4:{p:[548,382], zh:"言論廣場", en:"Speech Square"},
+  n5:{p:[640,350], zh:"廣電大樓前（改建中）", en:"Radio & TV Center (under renovation)"},
+  n6:{p:[785,318], zh:"舍我樓前", en:"She-Wo Building"},
+  n7:{p:[860,262], zh:"學校廣場", en:"Campus Square"},
+  g2:{p:[880,148], zh:"門2 後校門", en:"Gate 2 · Back Gate"},
+  n8:{p:[930,290], zh:"八風舞台", en:"Ba-Fong Stage"},
+  n9:{p:[1100,280], zh:"操場南側", en:"South of the Sports Field"},
+  n10:{p:[1210,275], zh:"小側門口", en:"Side gate path"},
+  g4:{p:[1214,305], zh:"門4 側門", en:"Gate 4 · Side Gate"},
+  n11:{p:[1290,215], zh:"傳播大廈前", en:"Communication Building"},
+  n14:{p:[1392,165], zh:"傳播大廈東側", en:"East of Communication Building"},
+  g3:{p:[1390,80], zh:"門3 傳院大門", en:"Gate 3 · College of Communication Gate"},
+  n12:{p:[1240,470], zh:"試院路", en:"Shiyuan Rd."},
+  n13:{p:[1150,498], zh:"管院大樓前", en:"Management Building"},
+  n15:{p:[1080,525], zh:"全媒體大樓正門", en:"Omni-Media Building entrance"}
+};
+var EDGES = [["g1","n1"],["n1","n2"],["n2","n3"],["n3","n4"],["n4","n5"],["n5","n6"],["n6","n7"],["n7","g2"],["n7","n8"],["n8","n9"],["n9","n10"],["n10","g4"],["n10","n11"],["n11","n14"],["n14","g3"],["g4","n12"],["n12","n13"],["n13","n15"]];
+var GATES = [
+  {key:"gate1", node:"g1", n:1, zh:"前校門（山洞口）", en:"Main Gate"},
+  {key:"gate2", node:"g2", n:2, zh:"後校門", en:"Back Gate"},
+  {key:"gate3", node:"g3", n:3, zh:"傳院大門", en:"Comm. Gate"},
+  {key:"gate4", node:"g4", n:4, zh:"側門（試院路）", en:"Side Gate"}
+];
+var ISLANDS = [
+  [[140,775],[150,640],[290,615],[345,575],[300,470],[255,350],[330,360],[300,205],[430,178],[520,222],[610,212],[700,160],[860,128],[950,105],[1060,72],[1340,58],[1405,70],[1402,175],[1272,245],[1242,312],[1188,310],[1060,318],[900,305],[760,350],[715,420],[705,500],[620,560],[520,640],[430,700],[355,745],[300,775]],
+  [[995,500],[1250,455],[1265,570],[1005,625]]
+];
+var PLAZAS = [
+  {type:"disc", c:[592,362], r:22, zh:"言論廣場", en:"Speech Square"},
+  {type:"rect", c:[850,215], w:60, h:40, rot:-15, zh:"學校廣場", en:"Campus Square"},
+  {type:"disc", c:[905,248], r:15, zh:"八風舞台", en:"Ba-Fong Stage", stage:true}
+];
+
+var LANDMARKS = [
+  {key:"spot-fountain", id:"fountain", zh:"魔法噴水池", en:"Magic Fountain", pos:[1078,578], node:"n15", zone:"z6", kind:"fountain",
+   desc:{zh:"全媒體大樓正門前的噴水池，中央是金屬環繞的星球雕塑。", en:"The fountain at the Omni-Media Building's main entrance, with a ringed globe sculpture in the middle."}},
+  {key:"spot-statue", id:"statue", zh:"舍我爺爺", en:"Grandpa She-wo statue", pos:[618,318], node:"n4", zone:"z2", kind:"statue",
+   desc:{zh:"創辦人成舍我先生的銅像，坐在「世新大學」木牆前，就在言論廣場旁。", en:"Bronze statue of founder Cheng She-wo, seated before the wooden \u201cShih Hsin University\u201d wall beside Speech Square."}}
+];
+/* spots: every place that can be a start, a destination or a QR */
+var SPOTS = {};
+GATES.forEach(function(g){ SPOTS[g.key] = {key:g.key, node:g.node, gate:g, zh:"門" + g.n + " " + g.zh, en:"Gate " + g.n + " · " + g.en}; });
+BUILDINGS.forEach(function(b){ b.key = "bldg-" + b.id.toLowerCase(); SPOTS[b.key] = {key:b.key, node:b.node, b:b, zh:(b.code ? b.code + " " : "") + b.zh, en:(b.code ? b.code + " " : "") + b.en}; });
+LANDMARKS.forEach(function(l){ SPOTS[l.key] = {key:l.key, node:l.node, lm:l, zh:l.zh, en:l.en}; });
+
+/* ===================== GEOMETRY ===================== */
+var CEN = [780, 420], PHI = -85 * Math.PI / 180, CO = Math.cos(PHI), SI = Math.sin(PHI);
+function rot(x, y){ var dx = x - CEN[0], dy = y - CEN[1]; return [dx*CO - dy*SI, dx*SI + dy*CO]; }
+function PP(ab, z){ return [(ab[0] - ab[1]) * 0.866, (ab[0] + ab[1]) * 0.5 - (z || 0)]; }
+function P(x, y, z){ return PP(rot(x, y), z); }
+var FLOOR = 6.5, CLIFF = 28;
+
+function el(tag, attrs, parent){ var e = document.createElementNS(NS, tag); for (var k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function pts(a){ return a.map(function(p){ return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" "); }
+function shade(hex, f){
+  var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  function c(v){ return Math.max(0, Math.min(255, Math.round(f > 1 ? v + (255 - v) * (f - 1) : v * f))); }
+  return "#" + ((1 << 24) + (c(r) << 16) + (c(g) << 8) + c(b)).toString(16).slice(1);
+}
+function rectCorners(p){ var r = p[4]*Math.PI/180, c = Math.cos(r), s = Math.sin(r); return [[-p[2]/2,-p[3]/2],[p[2]/2,-p[3]/2],[p[2]/2,p[3]/2],[-p[2]/2,p[3]/2]].map(function(q){ return [p[0] + q[0]*c - q[1]*s, p[1] + q[0]*s + q[1]*c]; }); }
+function circlePts(c, r, n){ var a = []; for (var i = 0; i < n; i++){ var t = i/n*Math.PI*2; a.push([c[0] + Math.cos(t)*r, c[1] + Math.sin(t)*r]); } return a; }
+function signedArea(R){ var s = 0; for (var i = 0; i < R.length; i++){ var p = R[i], q = R[(i+1) % R.length]; s += p[0]*q[1] - q[0]*p[1]; } return s/2; }
+function inPoly(pt, poly){ var x = pt[0], y = pt[1], ins = false; for (var i = 0, j = poly.length-1; i < poly.length; j = i++){ var xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1]; if (((yi > y) !== (yj > y)) && (x < (xj-xi)*(y-yi)/(yj-yi) + xi)) ins = !ins; } return ins; }
+function segDist(p, a, b){ var dx = b[0]-a[0], dy = b[1]-a[1], t = ((p[0]-a[0])*dx + (p[1]-a[1])*dy) / (dx*dx + dy*dy); t = Math.max(0, Math.min(1, t)); return Math.hypot(a[0] + t*dx - p[0], a[1] + t*dy - p[1]); }
+function hull(points){
+  var p = points.slice().sort(function(a, b){ return a[0] - b[0] || a[1] - b[1]; });
+  function cross(o, a, b){ return (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0]); }
+  var lo = [], up = [];
+  p.forEach(function(q){ while (lo.length >= 2 && cross(lo[lo.length-2], lo[lo.length-1], q) <= 0) lo.pop(); lo.push(q); });
+  p.slice().reverse().forEach(function(q){ while (up.length >= 2 && cross(up[up.length-2], up[up.length-1], q) <= 0) up.pop(); up.push(q); });
+  up.pop(); lo.pop(); return lo.concat(up);
+}
+function textW(s, fs){ var w = 0; for (var i = 0; i < s.length; i++) w += s.charCodeAt(i) > 255 ? fs : fs * 0.6; return w; }
+function T(o){ return o ? (lang === "en" ? o.en : o.zh) : ""; }
+
+/* visible side faces of an extruded polygon, back to front */
+function faces(poly){
+  var R = poly.map(function(p){ return rot(p[0], p[1]); }), ccw = signedArea(R) > 0, out = [];
+  for (var i = 0; i < R.length; i++){
+    var p = R[i], q = R[(i+1) % R.length], da = q[0]-p[0], db = q[1]-p[1];
+    var nx = ccw ? db : -db, ny = ccw ? -da : da;
+    if (nx + ny <= 0) continue;
+    out.push({p:p, q:q, len:Math.hypot(da, db), depth:(p[0]+p[1]+q[0]+q[1]) / 2, right:(nx - ny) > 0});
+  }
+  out.sort(function(a, b){ return a.depth - b.depth; });
+  return {R:R, list:out};
+}
+function fq(f, u0, u1, z0, z1){
+  function at(u){ return [f.p[0] + (f.q[0]-f.p[0])*u, f.p[1] + (f.q[1]-f.p[1])*u]; }
+  return [PP(at(u0), z0), PP(at(u1), z0), PP(at(u1), z1), PP(at(u0), z1)];
+}
+function fpt(f, u, z){ return PP([f.p[0] + (f.q[0]-f.p[0])*u, f.p[1] + (f.q[1]-f.p[1])*u], z); }
+function insetTop(R, k){ var c = R.reduce(function(m, p){ return [m[0] + p[0]/R.length, m[1] + p[1]/R.length]; }, [0, 0]); return R.map(function(p){ return [c[0] + (p[0]-c[0])*k, c[1] + (p[1]-c[1])*k]; }); }
+
+var MATS = {
+  brick:{L:"#CE7A61", R:"#B0614B", edge:"#8C4A39", win:"#4E5F68", winR:"#435159", sill:"#E9C5B5"},
+  white:{L:"#F4F2ED", R:"#D8D4CB", edge:"#A9A49A", win:"#86A9BE", winR:"#7698AD", sill:"#FFFFFF"},
+  glass:{L:"#EEF3F5", R:"#CDD8DF", edge:"#93A3AD", win:"#4E8DBF", winR:"#3F7AA9", sill:"#FFFFFF"},
+  dark:{L:"#5E6A72", R:"#4A545B", edge:"#323A40", win:"#9FDCEB", winR:"#86C6D6", sill:"#79868E"},
+  hall:{L:"#F4F1EA", R:"#DCD7CC", edge:"#A9A396", win:"#C0392B", winR:"#A33025", sill:"#FFFFFF"},
+  hangar:{L:"#E6E3DB", R:"#CBC6BB", edge:"#9C968A", win:"#8A9AA4", winR:"#7A8992", sill:"#FFFFFF"},
+  construction:{L:"#DAD6CD", R:"#C4BFB4", edge:"#9A8F7A", win:"#9A8F7A", winR:"#8C826E", sill:"#E9E5DC"}
+};
+
+/* ===================== GRAPH ===================== */
+var ADJ = {};
+EDGES.forEach(function(e){ var a = NODES[e[0]].p, b = NODES[e[1]].p, d = Math.hypot(a[0]-b[0], a[1]-b[1]); (ADJ[e[0]] = ADJ[e[0]] || []).push([e[1], d]); (ADJ[e[1]] = ADJ[e[1]] || []).push([e[0], d]); });
+function dijkstra(src){
+  var dist = {}, prev = {}, done = {};
+  Object.keys(NODES).forEach(function(k){ dist[k] = Infinity; }); dist[src] = 0;
+  for (;;){
+    var u = null;
+    Object.keys(dist).forEach(function(k){ if (!done[k] && (u === null || dist[k] < dist[u])) u = k; });
+    if (u === null || dist[u] === Infinity) break; done[u] = true;
+    (ADJ[u] || []).forEach(function(nb){ var nd = dist[u] + nb[1]; if (nd < dist[nb[0]]){ dist[nb[0]] = nd; prev[nb[0]] = u; } });
+  }
+  return {dist:dist, prev:prev};
+}
+function pathTo(res, t){ var p = [t]; while (res.prev[p[0]]) p.unshift(res.prev[p[0]]); return p; }
+
+/* ===================== STATE ===================== */
+var state = {here:null, filter:null, zone:null, view:"home", sel:null, hitFloor:null, hitText:null, route:null, query:""};
+var stack = [];
+var svg = document.getElementById("map"), layers = {}, bldEls = {}, lblEls = {}, base = null, view = null;
+
+/* ===================== DRAW ===================== */
+function build(){
+  while (svg.lastChild && svg.lastChild.tagName !== "title") svg.removeChild(svg.lastChild);
+  var defs = el("defs", {}, svg);
+  var lg = el("linearGradient", {id:"seaG", x1:"0", y1:"0", x2:"0", y2:"1"}, defs);
+  el("stop", {offset:"0", "stop-color":"#CFE5EA"}, lg); el("stop", {offset:"1", "stop-color":"#E4F0EE"}, lg);
+  ["sea","ground","shadows","roads","route","objects","ghost","pins","labels"].forEach(function(k){ layers[k] = el("g", {}, svg); });
+  bldEls = {}; lblEls = {};
+
+  /* fit box first (needed for sea) */
+  var all = [];
+  ISLANDS.forEach(function(poly){ poly.forEach(function(p){ var s = P(p[0], p[1]); all.push(s, [s[0], s[1] + CLIFF]); }); });
+  BUILDINGS.forEach(function(b){ all.push(P(b.parts[0][0], b.parts[0][1], b.fl*FLOOR + 60)); });
+  GATES.forEach(function(g){ var s = P(NODES[g.node].p[0], NODES[g.node].p[1]); all.push([s[0] + 190, s[1] - 50]); });
+  var xs = all.map(function(a){ return a[0]; }), ys = all.map(function(a){ return a[1]; });
+  base = {x:Math.min.apply(null, xs) - 40, y:Math.min.apply(null, ys) - 40};
+  base.w = Math.max.apply(null, xs) + 40 - base.x; base.h = Math.max.apply(null, ys) + 40 - base.y;
+  if (!view) view = {cx:base.x + base.w/2, cy:base.y + base.h/2, s:1};
+
+  /* sea and ripples */
+  el("rect", {x:base.x - 3000, y:base.y - 3000, width:base.w + 6000, height:base.h + 6000, fill:"url(#seaG)"}, layers.sea);
+  var seed = 11;
+  function rnd(){ seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+  for (var w = 0; w < 260; w++){
+    var wp = [40 + rnd()*1500, 0 + rnd()*900];
+    if (inPoly(wp, ISLANDS[0]) || inPoly(wp, ISLANDS[1])) continue;
+    var near = ISLANDS[0].concat(ISLANDS[1]).some(function(q){ return Math.hypot(q[0]-wp[0], q[1]-wp[1]) < 140; });
+    if (!near && rnd() > 0.35) continue;
+    var s = P(wp[0], wp[1]), L = 8 + rnd()*10;
+    el("path", {d:"M" + (s[0]-L) + " " + s[1] + " q" + (L/2) + " -4 " + L + " 0 t" + L + " 0", fill:"none", stroke:"#FFFFFF", "stroke-width":1.6, "stroke-linecap":"round", opacity:(0.35 + rnd()*0.4).toFixed(2)}, layers.sea);
+  }
+
+  /* islands: shore foam, grass lip, earth cliff with strata, top */
+  ISLANDS.forEach(function(poly){
+    var g = el("g", {}, layers.ground);
+    var fc = faces(poly);
+    el("polygon", {points:pts(fc.R.map(function(p){ return PP(p, -CLIFF - 3); })), fill:"#F5FBFA", opacity:0.75, stroke:"#F5FBFA", "stroke-width":10, "stroke-linejoin":"round"}, g);
+    fc.list.forEach(function(f){
+      el("polygon", {points:pts(fq(f, 0, 1, -CLIFF, -6)), fill:f.right ? "#B39A6C" : "#CDB487", stroke:"#977F55", "stroke-width":0.6}, g);
+      var a = fpt(f, 0, -16), b = fpt(f, 1, -16);
+      el("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:f.right ? "#A08860" : "#BBA275", "stroke-width":2}, g);
+      el("polygon", {points:pts(fq(f, 0, 1, -6, 0)), fill:f.right ? "#7EAF5F" : "#93C373", stroke:"#6E9E52", "stroke-width":0.6}, g);
+    });
+    el("polygon", {points:pts(fc.R.map(function(p){ return PP(p, 0); })), fill:"#BEE3A2", stroke:"#8DBB6E", "stroke-width":1.2, "stroke-linejoin":"round"}, g);
+  });
+  /* grass texture */
+  for (var t = 0; t < 70; t++){
+    var gp = [140 + rnd()*1280, 60 + rnd()*700];
+    if (!inPoly(gp, ISLANDS[0])) continue;
+    var gs = P(gp[0], gp[1]);
+    el("ellipse", {cx:gs[0], cy:gs[1], rx:16 + rnd()*22, ry:6 + rnd()*7, fill:rnd() > 0.5 ? "#C9EAB0" : "#B2DA95", opacity:0.6}, layers.ground);
+  }
+
+  /* plazas, stage, sports field */
+  PLAZAS.forEach(function(pz){
+    var poly = pz.type === "disc" ? circlePts(pz.c, pz.r, 32) : rectCorners([pz.c[0], pz.c[1], pz.w, pz.h, pz.rot]);
+    if (pz.stage){
+      var fc = faces(poly);
+      fc.list.forEach(function(f){ el("polygon", {points:pts(fq(f, 0, 1, 0, 4)), fill:"#B9AE98"}, layers.ground); });
+      el("polygon", {points:pts(fc.R.map(function(p){ return PP(p, 4); })), fill:"#D8CDB5", stroke:"#B3A68C", "stroke-width":1}, layers.ground);
+    } else {
+      el("polygon", {points:pts(poly.map(function(p){ return P(p[0], p[1]); })), fill:"#EEE7D7", stroke:"#C9BEA6", "stroke-width":1.2}, layers.ground);
+      var inner = pz.type === "disc" ? circlePts(pz.c, pz.r*0.55, 24) : rectCorners([pz.c[0], pz.c[1], pz.w*0.6, pz.h*0.5, pz.rot]);
+      el("polygon", {points:pts(inner.map(function(p){ return P(p[0], p[1]); })), fill:"none", stroke:"#D5C9AF", "stroke-width":1.2}, layers.ground);
+    }
+  });
+  function ell(cx, cy, rx, ry, deg){ var a = [], r = deg*Math.PI/180; for (var k = 0; k < 48; k++){ var t = k/48*Math.PI*2, ex = Math.cos(t)*rx, ey = Math.sin(t)*ry; a.push(P(cx + ex*Math.cos(r) - ey*Math.sin(r), cy + ex*Math.sin(r) + ey*Math.cos(r))); } return a; }
+  el("polygon", {points:pts(ell(1175,132,94,46,-8)), fill:"#D9837E", stroke:"#B9665F", "stroke-width":1.2}, layers.ground);
+  [86,78].forEach(function(rx, i){ el("polygon", {points:pts(ell(1175,132,rx,46 - (94-rx)*0.9,-8)), fill:"none", stroke:"#F3D3CF", "stroke-width":0.9}, layers.ground); });
+  el("polygon", {points:pts(ell(1175,132,70,26,-8)), fill:"#7DC277", stroke:"#5FA65A", "stroke-width":1}, layers.ground);
+  var c1 = P(1175 - 70*0.99, 132 + 70*0.14), c2 = P(1175 + 70*0.99, 132 - 70*0.14);
+  el("line", {x1:c1[0], y1:c1[1], x2:c2[0], y2:c2[1], stroke:"#A8DCA2", "stroke-width":1}, layers.ground);
+
+  /* bridge piers, then roads */
+  var gA = NODES.g4.p, gB = NODES.n12.p;
+  [0.2, 0.45, 0.7].forEach(function(u){
+    var x = gA[0] + (gB[0]-gA[0])*u, y = gA[1] + (gB[1]-gA[1])*u, top = P(x, y), bot = P(x, y, -CLIFF - 2);
+    el("line", {x1:top[0], y1:top[1], x2:bot[0], y2:bot[1], stroke:"#8B918D", "stroke-width":5}, layers.roads);
+  });
+  [["#A3AAA4",16],["#ECE8DF",11.5]].forEach(function(st){
+    EDGES.forEach(function(e){ var a = P(NODES[e[0]].p[0], NODES[e[0]].p[1]), b = P(NODES[e[1]].p[0], NODES[e[1]].p[1]); el("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:st[0], "stroke-width":st[1], "stroke-linecap":"round"}, layers.roads); });
+  });
+  EDGES.forEach(function(e){ var a = P(NODES[e[0]].p[0], NODES[e[0]].p[1]), b = P(NODES[e[1]].p[0], NODES[e[1]].p[1]); el("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:"#D6D0C2", "stroke-width":1.2, "stroke-dasharray":"3 6"}, layers.roads); });
+  var bA = P(gA[0], gA[1]), bB = P(gB[0], gB[1]);
+  [-7, 7].forEach(function(off){ el("line", {x1:bA[0] + off, y1:bA[1] - 3, x2:bB[0] + off, y2:bB[1] - 3, stroke:"#6F7672", "stroke-width":1.5}, layers.roads); });
+
+  /* trees */
+  var trees = [];
+  for (var i = 0; i < 1400 && trees.length < 190; i++){
+    var tp = [120 + rnd()*1310, 50 + rnd()*620];
+    if (!inPoly(tp, ISLANDS[0]) && !inPoly(tp, ISLANDS[1])) continue;
+    var ok = true;
+    BUILDINGS.forEach(function(b){ b.parts.forEach(function(p){ if (Math.hypot(tp[0]-p[0], tp[1]-p[1]) < Math.max(p[2], p[3])*0.72 + 10) ok = false; }); });
+    EDGES.forEach(function(e){ if (segDist(tp, NODES[e[0]].p, NODES[e[1]].p) < 20) ok = false; });
+    PLAZAS.forEach(function(pz){ if (Math.hypot(tp[0]-pz.c[0], tp[1]-pz.c[1]) < 40) ok = false; });
+    if (Math.hypot((tp[0]-1175)/1.9, tp[1]-132) < 58) ok = false;
+    if (Math.hypot(tp[0]-285, tp[1]-752) < 40) ok = false;
+    LANDMARKS.forEach(function(l){ if (Math.hypot(tp[0]-l.pos[0], tp[1]-l.pos[1]) < 34) ok = false; });
+    trees.forEach(function(q){ if (Math.hypot(tp[0]-q[0], tp[1]-q[1]) < 17) ok = false; });
+    if (ok) trees.push([tp[0], tp[1], rnd(), rnd()]);
+  }
+
+  /* building shadows */
+  BUILDINGS.forEach(function(b){
+    b.parts.forEach(function(p){
+      var c = rectCorners(p), h = b.fl * FLOOR, R = c.map(function(q){ return rot(q[0], q[1]); });
+      var pts2 = [];
+      R.forEach(function(r){ pts2.push(PP(r, 0)); pts2.push(PP([r[0] + h*0.55, r[1] - h*0.05], 0)); });
+      el("polygon", {points:pts(hull(pts2)), fill:"#284034", opacity:0.16}, layers.shadows);
+    });
+  });
+
+  /* depth-sorted objects */
+  var items = [];
+  BUILDINGS.forEach(function(b){ b.parts.forEach(function(p, idx){ var R = rot(p[0], p[1]); items.push({kind:"b", b:b, part:p, idx:idx, depth:R[0] + R[1]}); }); });
+  trees.forEach(function(tp){ var R = rot(tp[0], tp[1]); items.push({kind:"t", p:tp, depth:R[0] + R[1]}); });
+  var gateR = rot(285, 752); items.push({kind:"arch", depth:gateR[0] + gateR[1]});
+  LANDMARKS.forEach(function(l){ var R = rot(l.pos[0], l.pos[1]); items.push({kind:"lm", l:l, depth:R[0] + R[1]}); });
+  items.sort(function(a, b){ return a.depth - b.depth; });
+  items.forEach(function(it){
+    if (it.kind === "t") return drawTree(it.p);
+    if (it.kind === "arch") return drawArch();
+    if (it.kind === "lm") return drawLandmark(it.l);
+    drawBuildingPart(it.b, it.part, it.idx);
+  });
+
+  /* gates */
+  GATES.forEach(function(gt){
+    var p = NODES[gt.node].p, s0 = P(p[0], p[1]), s = [s0[0] + 18, s0[1]];
+    var g = el("g", {"aria-hidden":"true"}, layers.pins);
+    el("line", {x1:s[0], y1:s[1], x2:s[0], y2:s[1]-44, stroke:"#2B3330", "stroke-width":2.5}, g);
+    el("path", {d:"M" + s[0] + " " + (s[1]-44) + " h30 l-6 11 l6 11 h-30 z", fill:"#2E7D32"}, g);
+    el("text", {x:s[0]+13, y:s[1]-28, "text-anchor":"middle", "font-size":14, "font-weight":900, fill:"#fff"}, g).textContent = gt.n;
+    var label = (lang === "en" ? "Gate " : "門") + gt.n + " " + T(gt);
+    var lw = textW(label, 13) + 16;
+    el("rect", {x:s[0]+36, y:s[1]-44, width:lw, height:22, rx:11, fill:"#fff", stroke:"#2E7D32", "stroke-width":1.5}, g);
+    el("text", {x:s[0]+36+lw/2, y:s[1]-28.5, "text-anchor":"middle", "font-size":13, "font-weight":700, fill:"#1B4D1E"}, g).textContent = label;
+  });
+
+  /* ground labels */
+  PLAZAS.forEach(function(pz){ var s = P(pz.c[0], pz.c[1], pz.stage ? 4 : 0); el("text", {x:s[0], y:s[1]+4, "text-anchor":"middle", "font-size":11, "font-weight":700, fill:"#6B5E45", "aria-hidden":"true"}, layers.labels).textContent = T(pz); });
+  var fs = P(1175, 132); el("text", {x:fs[0], y:fs[1]+4, "text-anchor":"middle", "font-size":12, "font-weight":900, fill:"#2F5E2C", "aria-hidden":"true"}, layers.labels).textContent = lang === "en" ? "Sports Field" : "操場";
+
+  /* landmark labels */
+  LANDMARKS.forEach(function(l){
+    var s = P(l.pos[0], l.pos[1], l.kind === "fountain" ? 34 : 26), txt = (l.kind === "fountain" ? "⛲ " : "◎ ") + T(l), w = textW(txt, 12) + 16;
+    var g = el("g", {"class":"lbl lm-lbl", "data-id":l.id, "aria-hidden":"true"}, layers.labels);
+    el("rect", {x:s[0]-w/2, y:s[1]-20, width:w, height:21, rx:10.5, fill:"#FFF8E6", stroke:"#B88A2E", "stroke-width":1.4}, g);
+    el("text", {x:s[0], y:s[1]-5.5, "text-anchor":"middle", "font-size":12, "font-weight":900, fill:"#6B4A10"}, g).textContent = txt;
+  });
+
+  /* building labels */
+  BUILDINGS.forEach(function(b){
+    var z = ZONES[b.zone], p = b.parts[0], top = P(p[0], p[1], b.fl*FLOOR + (b.tower ? 10 : 0));
+    var g = el("g", {"class":"lbl", "data-id":b.id, "aria-hidden":"true"}, layers.labels);
+    var badge = b.code || (lang === "en" ? b.shortEn : b.short), bw = Math.max(28, textW(badge, 15) + 14);
+    el("rect", {x:top[0]-bw/2, y:top[1]-13, width:bw, height:25, rx:7, fill:"#fff", stroke:z.dark ? "#8A6A00" : shade(z.color, 0.75), "stroke-width":1.8}, g);
+    el("text", {x:top[0], y:top[1]+5, "text-anchor":"middle", "font-size":15, "font-weight":900, fill:z.dark ? "#5A4200" : shade(z.color, 0.8)}, g).textContent = badge;
+    var name = T(b) + (b.closed ? (lang === "en" ? " · renovating" : "・改建中") : "");
+    var nw = textW(name, 12) + 16, ng = el("g", {"class":b.closed ? "name closed-name" : "name"}, g);
+    el("rect", {x:top[0]-nw/2, y:top[1]-40, width:nw, height:21, rx:10.5, fill:"#17211F", opacity:0.9}, ng);
+    el("text", {x:top[0], y:top[1]-25.5, "text-anchor":"middle", "font-size":12, "font-weight":700, fill:"#fff"}, ng).textContent = name;
+    lblEls[b.id] = g;
+  });
+
+  applyView();
+  refreshMap();
+}
+
+function drawTree(tp){
+  var s = P(tp[0], tp[1]), g = el("g", {"aria-hidden":"true"}, layers.objects), big = 0.8 + tp[3]*0.5;
+  el("ellipse", {cx:s[0] + 4, cy:s[1] + 1, rx:8*big, ry:3.2*big, fill:"#2A4A2E", opacity:0.18}, g);
+  if (tp[2] < 0.22){
+    el("rect", {x:s[0]-1.3, y:s[1]-6, width:2.6, height:6, fill:"#6B4F33"}, g);
+    el("polygon", {points:pts([[s[0], s[1]-28*big], [s[0]+8*big, s[1]-5], [s[0]-8*big, s[1]-5]]), fill:"#3F7F45"}, g);
+    el("polygon", {points:pts([[s[0], s[1]-28*big], [s[0]-8*big, s[1]-5], [s[0], s[1]-7]]), fill:"#4F9555"}, g);
+  } else {
+    var col = tp[2] < 0.6 ? ["#5A9D4E","#78B866","#9BD083"] : ["#4E9150","#6BAE63","#8FC97D"];
+    el("rect", {x:s[0]-1.5, y:s[1]-9, width:3, height:9, fill:"#6B4F33"}, g);
+    el("circle", {cx:s[0], cy:s[1]-15*big, r:8.5*big, fill:col[0]}, g);
+    el("circle", {cx:s[0]-2.6*big, cy:s[1]-17.5*big, r:5.2*big, fill:col[1]}, g);
+    el("circle", {cx:s[0]-3.6*big, cy:s[1]-19*big, r:2.2*big, fill:col[2]}, g);
+  }
+}
+
+function drawArch(){
+  var poly = rectCorners([285, 752, 52, 18, 32]), fc = faces(poly), H = 15;
+  var g = el("g", {"aria-hidden":"true"}, layers.objects);
+  fc.list.forEach(function(f){
+    el("polygon", {points:pts(fq(f, 0, 1, 0, H)), fill:f.right ? "#9C9588" : "#B8B1A4", stroke:"#7D776B", "stroke-width":0.8}, g);
+    if (f.len > 30){
+      var arch = [];
+      for (var k = 0; k <= 16; k++){ var t = Math.PI - k/16*Math.PI; arch.push(fpt(f, 0.5 + Math.cos(t)*0.17, 5.5 + Math.sin(t)*5.5)); }
+      arch.unshift(fpt(f, 0.33, 0)); arch.push(fpt(f, 0.67, 0));
+      el("polygon", {points:pts(arch), fill:"#2D302E"}, g);
+    }
+  });
+  el("polygon", {points:pts(fc.R.map(function(p){ return PP(p, H); })), fill:"#7DB861", stroke:"#5E9846", "stroke-width":1}, g);
+  [[0.35,"#5A9D4E"],[0.6,"#6BAE63"]].forEach(function(q){ var c = P(285 + (q[0]-0.5)*30, 752, H); el("circle", {cx:c[0], cy:c[1]-4, r:5, fill:q[1]}, g); });
+}
+
+function drawLandmark(l){
+  var g = el("g", {"class":"bld lm", "data-id":l.id, tabindex:0, role:"button", "aria-label":T(l)}, layers.objects);
+  var c = l.pos;
+  if (l.kind === "fountain"){
+    /* paved forecourt, dark basin, water, ringed globe */
+    el("polygon", {points:pts(circlePts(c, 20, 36).map(function(p){ return P(p[0], p[1]); })), fill:"#ECEAE4", stroke:"#C9C4B8", "stroke-width":1}, g);
+    el("polygon", {points:pts(circlePts(c, 16, 36).map(function(p){ return P(p[0], p[1]); })), fill:"none", stroke:"#D5D0C4", "stroke-width":0.8}, g);
+    var oct = circlePts(c, 11, 8), fc = faces(oct);
+    fc.list.forEach(function(f){ el("polygon", {points:pts(fq(f, 0, 1, 0, 4)), fill:f.right ? "#2A2E33" : "#3A4047", stroke:"#1E2226", "stroke-width":0.6}, g); });
+    el("polygon", {points:pts(fc.R.map(function(p){ return PP(p, 4); })), fill:"#3A4047", stroke:"#1E2226", "stroke-width":0.6}, g);
+    el("polygon", {points:pts(insetTop(fc.R, 0.8).map(function(p){ return PP(p, 4); })), fill:"#3E6FA8"}, g);
+    el("polygon", {points:pts(insetTop(fc.R, 0.5).map(function(p){ return PP(p, 4); })), fill:"#5C8FC6", opacity:0.8}, g);
+    var o = P(c[0], c[1], 15);
+    var ped = P(c[0], c[1], 4);
+    el("line", {x1:ped[0], y1:ped[1], x2:o[0], y2:o[1] + 7, stroke:"#9AA3AB", "stroke-width":2.5}, g);
+    el("ellipse", {cx:o[0], cy:o[1], rx:13, ry:13, fill:"none", stroke:"#C8CED4", "stroke-width":1.6}, g);
+    el("ellipse", {cx:o[0], cy:o[1], rx:13, ry:4.5, fill:"none", stroke:"#AEB6BD", "stroke-width":1.6}, g);
+    el("ellipse", {cx:o[0], cy:o[1], rx:13, ry:5.5, fill:"none", stroke:"#D9DEE2", "stroke-width":1.3, transform:"rotate(-35 " + o[0] + " " + o[1] + ")"}, g);
+    el("circle", {cx:o[0], cy:o[1], r:6.5, fill:"#8FA9C4"}, g);
+    el("circle", {cx:o[0] - 2, cy:o[1] - 2.2, r:2.4, fill:"#EAF3FB"}, g);
+    [[-9,6],[9,5],[-4,8],[5,8]].forEach(function(d){ el("path", {d:"M" + (o[0] + d[0]*0.4) + " " + (o[1] + 4) + " q" + (d[0]*0.6) + " -6 " + d[0] + " " + d[1], fill:"none", stroke:"#BFE0F5", "stroke-width":1, opacity:0.9}, g); });
+  } else {
+    /* wooden slat wall with red lettering, bronze seated figure on a stone */
+    var wall = rectCorners([c[0] - 2, c[1] - 9, 40, 4, -18]), wf = faces(wall), H = 13;
+    wf.list.forEach(function(f){
+      el("polygon", {points:pts(fq(f, 0, 1, 0, H)), fill:f.right ? "#8E5A32" : "#A86C3E", stroke:"#6E4424", "stroke-width":0.6}, g);
+      if (f.len > 20){
+        var d = ""; for (var k = 1; k < 12; k++){ var a = fpt(f, k/12, 0), b = fpt(f, k/12, H); d += "M" + a[0].toFixed(1) + " " + a[1].toFixed(1) + "L" + b[0].toFixed(1) + " " + b[1].toFixed(1); }
+        el("path", {d:d, stroke:"#73452A", "stroke-width":0.7, fill:"none"}, g);
+        for (var m = 0; m < 4; m++){ var q = fpt(f, 0.3 + m*0.12, H*0.62); el("rect", {x:q[0]-1.6, y:q[1]-1.6, width:3.2, height:3.2, fill:"#D23A2A"}, g); }
+        var lg = fpt(f, 0.15, H*0.62); el("circle", {cx:lg[0], cy:lg[1], r:2.6, fill:"none", stroke:"#D23A2A", "stroke-width":1}, g);
+      }
+    });
+    el("polygon", {points:pts(wf.R.map(function(p){ return PP(p, H); })), fill:"#B97A48"}, g);
+    var base = P(c[0] + 2, c[1] + 3);
+    el("ellipse", {cx:base[0], cy:base[1], rx:7, ry:3, fill:"#7E8277"}, g);
+    el("rect", {x:base[0]-6, y:base[1]-5, width:12, height:5, rx:1.5, fill:"#8C9085"}, g);
+    el("rect", {x:base[0]-4, y:base[1]-13, width:7, height:9, rx:2.5, fill:"#5F665C"}, g);
+    el("rect", {x:base[0]+1, y:base[1]-6, width:6, height:2.4, rx:1, fill:"#555C52"}, g);
+    el("circle", {cx:base[0]-0.5, cy:base[1]-16, r:3.4, fill:"#6B7367"}, g);
+    el("rect", {x:base[0]+1.5, y:base[1]-11, width:4, height:3, fill:"#C9CBBE"}, g);
+  }
+  (bldEls[l.id] = bldEls[l.id] || []).push(g);
+  g.addEventListener("click", function(){ if (!dragMoved) openLandmark(l.key); });
+  g.addEventListener("keydown", function(ev){ if (ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); openLandmark(l.key); } });
+}
+
+function drawBuildingPart(b, part, idx){
+  var z = ZONES[b.zone], m = MATS[b.mat], H = b.fl * FLOOR;
+  var gb = el("g", {"class":"bld", "data-id":b.id, tabindex:idx === 0 ? 0 : -1, role:"button", "aria-label":T(b) + (b.code ? " " + b.code : "")}, layers.objects);
+  var fc = faces(rectCorners(part));
+  fc.list.forEach(function(f){
+    var wall = f.right ? m.R : m.L;
+    el("polygon", {points:pts(fq(f, 0, 1, 0, H)), fill:wall, stroke:m.edge, "stroke-width":0.8, "stroke-linejoin":"round"}, gb);
+    if (b.mat === "construction"){
+      var d = "";
+      for (var fl = 1; fl < b.fl; fl++){ var a = fpt(f, 0, fl*FLOOR), c = fpt(f, 1, fl*FLOOR); d += "M" + a[0].toFixed(1) + " " + a[1].toFixed(1) + "L" + c[0].toFixed(1) + " " + c[1].toFixed(1); }
+      var nv = Math.max(2, Math.round(f.len / 12));
+      for (var v = 0; v <= nv; v++){ var a2 = fpt(f, v/nv, 0), c2 = fpt(f, v/nv, H); d += "M" + a2[0].toFixed(1) + " " + a2[1].toFixed(1) + "L" + c2[0].toFixed(1) + " " + c2[1].toFixed(1); }
+      for (var x = 0; x < nv; x++){ var a3 = fpt(f, x/nv, 0), c3 = fpt(f, (x+1)/nv, H); d += "M" + a3[0].toFixed(1) + " " + a3[1].toFixed(1) + "L" + c3[0].toFixed(1) + " " + c3[1].toFixed(1); }
+      el("path", {d:d, stroke:"#8E8167", "stroke-width":0.9, fill:"none", opacity:0.85}, gb);
+      return;
+    }
+    if (b.mat === "hall"){
+      var cols = Math.max(3, Math.round(f.len / 11));
+      for (var cI = 0; cI < cols; cI++){
+        var u0 = (cI + 0.3) / cols, u1 = (cI + 0.62) / cols;
+        el("polygon", {points:pts(fq(f, u0, u1, 0, H - 3)), fill:f.right ? m.winR : m.win}, gb);
+      }
+      el("polygon", {points:pts(fq(f, 0, 1, H - 3, H)), fill:f.right ? "#CFC9BC" : "#E8E3D8"}, gb);
+      return;
+    }
+    if (b.mat === "hangar"){
+      el("polygon", {points:pts(fq(f, 0.08, 0.92, 2, H*0.62)), fill:f.right ? m.winR : m.win, opacity:0.75}, gb);
+      return;
+    }
+    var winCol = f.right ? m.winR : m.win;
+    for (var k = 0; k < b.fl; k++){
+      var z0 = k*FLOOR + FLOOR*0.32, z1 = k*FLOOR + FLOOR*0.78;
+      el("polygon", {points:pts(fq(f, 0.06, 0.94, z0, z1)), fill:winCol}, gb);
+    }
+    var md = "", n = Math.max(2, Math.round(f.len / 9));
+    for (var j = 1; j < n; j++){ var a4 = fpt(f, 0.06 + 0.88*j/n, FLOOR*0.3), c4 = fpt(f, 0.06 + 0.88*j/n, H - FLOOR*0.2); md += "M" + a4[0].toFixed(1) + " " + a4[1].toFixed(1) + "L" + c4[0].toFixed(1) + " " + c4[1].toFixed(1); }
+    el("path", {d:md, stroke:wall, "stroke-width":1.1, fill:"none"}, gb);
+    var e0 = fpt(f, 0.05, FLOOR*0.25), e1 = fpt(f, 0.95, FLOOR*0.25);
+    el("line", {x1:e0[0], y1:e0[1], x2:e1[0], y2:e1[1], stroke:m.sill, "stroke-width":1.2}, gb);
+  });
+  /* roof: zone colour with a parapet */
+  var roofTop = fc.R.map(function(p){ return PP(p, H); });
+  var roofColor = b.mat === "construction" ? "#E2DED6" : z.color;
+  el("polygon", {"class":"roof", points:pts(roofTop), fill:roofColor, stroke:b.mat === "construction" ? "#9A8F7A" : shade(z.color, 0.6), "stroke-width":1, "stroke-linejoin":"round"}, gb);
+  if (b.mat !== "construction"){
+    el("polygon", {points:pts(insetTop(fc.R, 0.82).map(function(p){ return PP(p, H); })), fill:shade(z.color, b.mat === "hangar" ? 1.25 : 0.88), "pointer-events":"none"}, gb);
+    if (b.mat === "hangar"){
+      var ridge = insetTop(fc.R, 0.82);
+      var mA = [(ridge[0][0] + ridge[3][0])/2, (ridge[0][1] + ridge[3][1])/2], mB = [(ridge[1][0] + ridge[2][0])/2, (ridge[1][1] + ridge[2][1])/2];
+      var ra = PP(mA, H), rb = PP(mB, H);
+      el("line", {x1:ra[0], y1:ra[1], x2:rb[0], y2:rb[1], stroke:shade(z.color, 0.7), "stroke-width":1.4, "pointer-events":"none"}, gb);
+    }
+  } else if (idx === 0){
+    /* crane */
+    var c0 = PP(fc.R[0], H), mast = [c0[0], c0[1] - 46];
+    el("line", {x1:c0[0], y1:c0[1], x2:mast[0], y2:mast[1], stroke:"#C89A00", "stroke-width":3}, gb);
+    el("line", {x1:mast[0] - 14, y1:mast[1], x2:mast[0] + 46, y2:mast[1] + 6, stroke:"#C89A00", "stroke-width":3}, gb);
+    el("line", {x1:mast[0] + 38, y1:mast[1] + 5, x2:mast[0] + 38, y2:mast[1] + 22, stroke:"#2B2B2B", "stroke-width":1}, gb);
+    el("rect", {x:mast[0] - 16, y:mast[1] - 3, width:7, height:7, fill:"#C89A00"}, gb);
+  }
+  /* rooftop details */
+  if ((b.tower || b.fl >= 7) && b.mat !== "construction" && idx === 0){
+    var small = insetTop(fc.R, 0.32), sf = faces(small.map(function(r){ var x = r[0], y = r[1]; var ix = x*CO + y*SI + CEN[0], iy = -x*SI + y*CO + CEN[1]; return [ix, iy]; }));
+    var h2 = b.tower ? 10 : 5;
+    sf.list.forEach(function(f){ el("polygon", {points:pts(fq(f, 0, 1, H, H + h2)), fill:f.right ? "#C9C4BA" : "#E9E5DC", stroke:"#9F998D", "stroke-width":0.6, "pointer-events":"none"}, gb); });
+    el("polygon", {points:pts(sf.R.map(function(p){ return PP(p, H + h2); })), fill:"#F4F1EA", stroke:"#9F998D", "stroke-width":0.6, "pointer-events":"none"}, gb);
+  }
+  (bldEls[b.id] = bldEls[b.id] || []).push(gb);
+  gb.addEventListener("click", function(){ if (!dragMoved) openBuilding(b.id); });
+  gb.addEventListener("keydown", function(ev){ if (ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); openBuilding(b.id); } });
+}
+
+/* ===================== VIEW (pan / zoom) ===================== */
+function applyView(){ var w = base.w / view.s, h = base.h / view.s; svg.setAttribute("viewBox", (view.cx - w/2) + " " + (view.cy - h/2) + " " + w + " " + h); svg.classList.toggle("zoomed", view.s >= 1.7); }
+function zoomTo(pt, s){ view.cx = pt[0]; view.cy = pt[1]; view.s = Math.max(1, Math.min(5, s)); applyView(); }
+function zoomBy(f){ view.s = Math.max(1, Math.min(5, view.s * f)); applyView(); }
+document.getElementById("zin").addEventListener("click", function(){ zoomBy(1.4); });
+document.getElementById("zout").addEventListener("click", function(){ zoomBy(1/1.4); });
+document.getElementById("zfit").addEventListener("click", function(){ view = {cx:base.x + base.w/2, cy:base.y + base.h/2, s:1}; applyView(); });
+var pointers = {}, dragMoved = false, startDist = 0, startS = 1, lastPt = null;
+function unitsPerPx(){ var r = svg.getBoundingClientRect(); return Math.max((base.w/view.s) / r.width, (base.h/view.s) / r.height); }
+svg.addEventListener("pointerdown", function(e){ pointers[e.pointerId] = [e.clientX, e.clientY]; dragMoved = false; lastPt = [e.clientX, e.clientY]; var ids = Object.keys(pointers); if (ids.length === 2){ var a = pointers[ids[0]], b = pointers[ids[1]]; startDist = Math.hypot(a[0]-b[0], a[1]-b[1]); startS = view.s; } });
+svg.addEventListener("pointermove", function(e){
+  if (!pointers[e.pointerId]) return;
+  pointers[e.pointerId] = [e.clientX, e.clientY];
+  var ids = Object.keys(pointers);
+  if (ids.length === 2){ var a = pointers[ids[0]], b = pointers[ids[1]], d = Math.hypot(a[0]-b[0], a[1]-b[1]); if (startDist > 0){ view.s = Math.max(1, Math.min(5, startS * d / startDist)); applyView(); dragMoved = true; } return; }
+  var dx = e.clientX - lastPt[0], dy = e.clientY - lastPt[1];
+  if (!dragMoved && Math.hypot(dx, dy) < 5) return;
+  if (!dragMoved){ dragMoved = true; try { svg.setPointerCapture(e.pointerId); } catch (er) {} svg.classList.add("dragging"); }
+  var u = unitsPerPx(); view.cx -= dx*u; view.cy -= dy*u; lastPt = [e.clientX, e.clientY]; applyView();
+});
+function endPointer(e){ delete pointers[e.pointerId]; svg.classList.remove("dragging"); if (!Object.keys(pointers).length) setTimeout(function(){ dragMoved = false; }, 0); }
+svg.addEventListener("pointerup", endPointer); svg.addEventListener("pointercancel", endPointer);
+svg.addEventListener("wheel", function(e){ e.preventDefault(); zoomBy(e.deltaY < 0 ? 1.15 : 1/1.15); }, {passive:false});
+
+/* ===================== HELPERS ===================== */
+function bById(id){ for (var i = 0; i < BUILDINGS.length; i++) if (BUILDINGS[i].id === id) return BUILDINGS[i]; return null; }
+function feat(k){ for (var i = 0; i < FEATURES.length; i++) if (FEATURES[i].k === k) return FEATURES[i]; return null; }
+function fval(v){ return v === true ? (lang === "en" ? "Yes" : "有") : v; }
+function bName(b){ return (b.code ? b.code + " " : "") + T(b); }
+function spotName(k){ return SPOTS[k] ? T(SPOTS[k]) : ""; }
+function startKey(){ return state.here || "gate1"; }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+function splitItems(t){ return t.split(/[;；]/).map(function(s){ return s.trim(); }).filter(Boolean); }
+function zonePill(zid){ var z = ZONES[zid]; return '<span class="zone-pill" style="background:' + z.color + (z.dark ? ';color:#3A2A00' : '') + '">' + z.shape + " " + esc(T(z)) + "</span>"; }
+function centerOf(b){ var p = b.parts[0]; return [p[0], p[1]]; }
+function spotPos(s){ return s.b ? centerOf(s.b) : s.lm ? s.lm.pos : NODES[s.node].p; }
+function spotZone(s){ return s.b ? ZONES[s.b.zone] : s.lm ? ZONES[s.lm.zone] : null; }
+function nearestList(k, fromKey){
+  var res = dijkstra(SPOTS[fromKey].node);
+  return BUILDINGS.filter(function(b){ return b.f[k] && !b.closed; }).map(function(b){ return {b:b, d:res.dist[b.node]}; }).sort(function(a, c){ return a.d - c.d; });
+}
+/* room-code search: expands ranges like R501~R503 */
+var INDEX = [];
+BUILDINGS.forEach(function(b){
+  b.floors.forEach(function(fl){
+    splitItems(fl[1]).forEach(function(item){
+      var codes = [], m, re = /([A-Z]{1,2})(\d{3,4})(?:-\d)?(?:\s*[~～–]\s*(?:[A-Z]{1,2})?(\d{3,4}))?/g;
+      while ((m = re.exec(item))){
+        var a = parseInt(m[2], 10), z = m[3] ? parseInt(m[3], 10) : a;
+        if (z < a){ var t = a; a = z; z = t; }
+        for (var n = a; n <= z && n - a < 40; n++) codes.push(m[1] + n);
+      }
+      INDEX.push({b:b, floor:fl[0], text:item, codes:codes});
+    });
+  });
+});
+function search(q){
+  q = q.trim(); if (!q) return [];
+  var Q = q.toUpperCase().replace(/\s+/g, ""), out = [];
+  BUILDINGS.forEach(function(b){ if ((b.zh + b.en + b.code).toUpperCase().indexOf(Q) >= 0 && Q.length >= 1 && !/^\d/.test(Q)) out.push({b:b, floor:null, text:bName(b), score:0}); });
+  LANDMARKS.forEach(function(l){ if ((l.zh + l.en).toUpperCase().indexOf(Q) >= 0) out.push({lm:l, text:T(l), score:0}); });
+  INDEX.forEach(function(it){
+    var hitCode = it.codes.indexOf(Q) >= 0, hitText = it.text.toUpperCase().indexOf(Q) >= 0;
+    if (hitCode || hitText) out.push({b:it.b, floor:it.floor, text:it.text, score:hitCode ? 1 : 2});
+  });
+  out.sort(function(a, c){ return a.score - c.score; });
+  return out.slice(0, 12);
+}
+
+/* ===================== PANEL VIEWS ===================== */
+function go(viewName, data, push){
+  if (push !== false){ stack.push({view:state.view, sel:state.sel, hitFloor:state.hitFloor, hitText:state.hitText, route:state.route, lmKey:state.lmKey}); try { history.pushState({shu:stack.length}, ""); } catch (e) {} }
+  state.view = viewName;
+  if (data) for (var k in data) state[k] = data[k];
+  if (viewName !== "route") state.route = data && data.route ? data.route : (viewName === "route" ? state.route : null);
+  render();
+}
+function back(fromPop){
+  var prev = stack.pop();
+  if (!prev){ state.view = "home"; state.sel = null; state.route = null; render(); return; }
+  state.view = prev.view; state.sel = prev.sel; state.hitFloor = prev.hitFloor; state.hitText = prev.hitText; state.route = prev.route; state.lmKey = prev.lmKey;
+  render();
+  if (!fromPop){ try { history.back(); } catch (e) {} }
+}
+var ignorePop = 0;
+window.addEventListener("popstate", function(){ if (ignorePop > 0){ ignorePop--; return; } if (stack.length) back(true); });
+function goBackButton(){ if (stack.length){ ignorePop++; back(false); } else { state.view = "home"; state.sel = null; state.route = null; render(); } }
+
+function openBuilding(id, floor, text){
+  go("building", {sel:id, hitFloor:floor || null, hitText:text || null});
+  var b = bById(id), c = centerOf(b);
+  zoomTo(P(c[0], c[1], b.fl*FLOOR/2), Math.max(view.s, 1.9));
+}
+function openLandmark(key){
+  var l = SPOTS[key].lm;
+  go("landmark", {sel:l.id, lmKey:key});
+  zoomTo(P(l.pos[0], l.pos[1], 10), Math.max(view.s, 2.6));
+}
+function landmarkView(){
+  var l = SPOTS[state.lmKey] && SPOTS[state.lmKey].lm; if (!l) return homeView();
+  var z = ZONES[l.zone];
+  var h = '<section class="card"><button type="button" class="back" data-act="back">← ' + (lang === "en" ? "Back" : "返回") + "</button>";
+  h += '<div class="d-head"><span class="code" style="background:#B88A2E">' + (l.kind === "fountain" ? "⛲" : "◎") + '</span><div><div class="d-name">' + esc(T(l)) + "</div>" + zonePill(l.zone) + "</div></div>";
+  h += "<p>" + esc(T(l.desc)) + "</p>";
+  h += '<div class="row" style="margin:10px 0 4px"><button class="btn" type="button" data-act="route" data-to="' + l.key + '">' + (lang === "en" ? "Take me here" : "帶我到這裡") + '</button><button class="btn ghost" type="button" data-act="routefrom" data-from="' + l.key + '">' + (lang === "en" ? "Start from here" : "從這裡出發") + "</button></div>";
+  h += '<div class="qrmini"><div class="qr" data-qr="' + l.key + '"></div><div><b style="font-size:14px">' + (lang === "en" ? "Landmark QR code" : "地標 QR code") + '</b><p class="note" style="margin:4px 0 0">' + (lang === "en" ? "Scanning it opens the map with this landmark as \u201cYou are here\u201d." : "掃描後，地圖會以這個地標作為「你在這裡」。") + "</p></div></div></section>";
+  return h;
+}
+function openRoute(toKey, opts){
+  opts = opts || {};
+  var r = {from:opts.from || startKey(), to:toKey, feature:opts.feature || null, floor:opts.floor || null, text:opts.text || null};
+  go("route", {route:r, sel:SPOTS[toKey].b ? SPOTS[toKey].b.id : null});
+  fitRoute();
+}
+
+function render(){
+  var panel = document.getElementById("panel"), h = "";
+  if (state.view === "home") h = homeView();
+  else if (state.view === "building") h = buildingView();
+  else if (state.view === "route") h = routeView();
+  else if (state.view === "landmark") h = landmarkView();
+  panel.innerHTML = h;
+  bindPanel();
+  refreshMap();
+  renderStatic();
+}
+
+function searchCard(){
+  var h = '<section class="card"><h2>' + (lang === "en" ? "Search a room or office" : "搜尋教室、單位") + '</h2><div class="search"><input id="q" type="search" autocomplete="off" placeholder="' + (lang === "en" ? "e.g. R503, Library, 7-ELEVEN" : "例如 R503、圖書館、7-ELEVEN") + '" value="' + esc(state.query) + '" aria-label="' + (lang === "en" ? "Search" : "搜尋") + '"></div><div class="results" id="results">' + resultsHtml() + "</div></section>";
+  return h;
+}
+function resultsHtml(){
+  var r = search(state.query), h = "";
+  if (state.query && !r.length) return '<p class="note">' + (lang === "en" ? "No match. Try a room code like S503 or a unit name." : "找不到。試試教室代碼（如 S503）或單位名稱。") + "</p>";
+  r.forEach(function(x){
+    if (x.lm){ h += '<button type="button" class="res" data-act="openlm" data-key="' + x.lm.key + '"><span><strong>' + esc(T(x.lm)) + "</strong><small>" + (lang === "en" ? "Landmark" : "地標") + '</small></span><span class="btn">' + (lang === "en" ? "View" : "查看") + "</span></button>"; return; }
+    var sub = bName(x.b) + (x.floor ? " · " + x.floor : "");
+    h += '<button type="button" class="res" data-act="open" data-id="' + x.b.id + '"' + (x.floor ? ' data-floor="' + esc(x.floor) + '" data-text="' + esc(x.text) + '"' : "") + "><span><strong>" + esc(x.text) + "</strong><small>" + esc(sub) + '</small></span><span class="btn">' + (lang === "en" ? "View" : "查看") + "</span></button>";
+  });
+  return h;
+}
+function hereCard(){
+  var h = '<section class="card" aria-live="polite">';
+  if (state.here){
+    h += '<div class="here-title"><span class="here-dot"></span>' + (lang === "en" ? "You are here" : "你在這裡") + '</div><p class="here-place">' + esc(spotName(state.here)) + '</p><div class="near">';
+    ["gender","acc","nursing"].forEach(function(k){
+      var n = nearestList(k, state.here)[0]; if (!n) return;
+      var same = SPOTS[state.here].b && SPOTS[state.here].b.node === n.b.node && n.d === 0;
+      var where = (same && SPOTS[state.here].b.id === n.b.id) ? (lang === "en" ? "This building" : "本棟") : bName(n.b);
+      h += '<div class="near-row"><div><small>' + esc(T(feat(k))) + "</small><strong>" + esc(where) + " · " + esc(fval(n.b.f[k])) + '</strong></div><button class="btn" type="button" data-act="route" data-to="' + n.b.key + '" data-feature="' + k + '">' + (lang === "en" ? "Take me" : "帶我去") + "</button></div>";
+    });
+    h += '</div><p class="note" style="margin-top:8px">' + (lang === "en" ? "Nearest is estimated along campus paths. Walking times to be measured on site." : "「最近」依校內步道估算；步行時間待實地測量。") + "</p>";
+  } else {
+    h += "<h2>" + (lang === "en" ? "Scan the QR code on any building or gate" : "掃描大樓或校門的 QR code") + "</h2><p>" + (lang === "en" ? "The map marks where you are and the nearest restrooms and rooms you need." : "地圖會標出你在哪裡，並告訴你最近的廁所與設施。") + "</p>";
+  }
+  h += '<label class="demo" for="demo-sel">' + (lang === "en" ? "Try it: pretend to scan the QR at" : "試試看：模擬掃描這裡的 QR code") + '<select id="demo-sel"><option value="">' + (lang === "en" ? "— Not scanned —" : "— 尚未掃描 —") + "</option>" + spotOptions(state.here, true) + "</select></label></section>";
+  return h;
+}
+function spotOptions(sel, includeClosed){
+  var h = '<optgroup label="' + (lang === "en" ? "Gates" : "校門") + '">';
+  GATES.forEach(function(g){ h += '<option value="' + g.key + '"' + (sel === g.key ? " selected" : "") + ">" + esc(spotName(g.key)) + "</option>"; });
+  h += '</optgroup><optgroup label="' + (lang === "en" ? "Buildings" : "大樓") + '">';
+  BUILDINGS.forEach(function(b){ if (b.closed) return; h += '<option value="' + b.key + '"' + (sel === b.key ? " selected" : "") + ">" + esc(spotName(b.key)) + "</option>"; });
+  h += '</optgroup><optgroup label="' + (lang === "en" ? "Landmarks" : "地標") + '">';
+  LANDMARKS.forEach(function(l){ h += '<option value="' + l.key + '"' + (sel === l.key ? " selected" : "") + ">" + esc(T(l)) + "</option>"; });
+  return h + "</optgroup>";
+}
+function filterCard(){
+  var h = '<section class="card"><h2>' + (lang === "en" ? "Find a facility" : "找設施") + '</h2><div class="chips">';
+  FEATURES.forEach(function(f){ h += '<button type="button" class="chip" data-act="filter" data-k="' + f.k + '" aria-pressed="' + (state.filter === f.k) + '">' + esc(T(f)) + "</button>"; });
+  h += '</div><div class="matches">';
+  if (state.filter){
+    var list = nearestList(state.filter, startKey());
+    list.forEach(function(n){ h += '<button type="button" class="match" data-act="open" data-id="' + n.b.id + '"><span>' + esc(bName(n.b)) + "</span><span>" + esc(fval(n.b.f[state.filter])) + "</span></button>"; });
+    h += '<p class="note" style="margin-top:6px">' + (state.here ? (lang === "en" ? "Sorted by distance from you." : "依離你的距離排序。") : (lang === "en" ? "Sorted by distance from Gate 1." : "依離門1 的距離排序。")) + "</p>";
+  }
+  return h + "</div></section>";
+}
+function zoneCard(){
+  var h = '<section class="card"><h2>' + (lang === "en" ? "Zones (tap to show one)" : "分區（點選只看該區）") + '</h2><div class="zones">';
+  Object.keys(ZONES).forEach(function(k){ var z = ZONES[k]; h += '<button type="button" class="chip" data-act="zone" data-k="' + k + '" aria-pressed="' + (state.zone === k) + '"><span class="sw" style="background:' + z.color + '"></span>' + z.shape + " " + esc(T(z)) + "</button>"; });
+  return h + "</div></section>";
+}
+function homeView(){ return searchCard() + hereCard() + filterCard() + zoneCard(); }
+
+function floorFlags(text){
+  var out = [];
+  FEATURES.forEach(function(f){ if (f.match && text.indexOf(f.match) >= 0) out.push(lang === "en" ? f.shortEn : f.short); });
+  if (/廁所/.test(text) && !/無障礙廁所|性別友善廁所/.test(text.replace(/；?廁所(?=；|$)/, ""))) {}
+  if (/(^|；)廁所($|；)/.test(text)) out.push(lang === "en" ? "WC" : "廁所");
+  return out;
+}
+function buildingView(){
+  var b = bById(state.sel); if (!b) return homeView();
+  var z = ZONES[b.zone], h = '<section class="card"><button type="button" class="back" data-act="back">← ' + (lang === "en" ? "Back" : "返回") + "</button>";
+  h += '<div class="d-head"><span class="code" style="background:' + z.color + (z.dark ? ';color:#3A2A00' : '') + '">' + esc(b.code || (lang === "en" ? b.shortEn : b.short)) + '</span><div><div class="d-name">' + esc(T(b)) + "</div>" + zonePill(b.zone) + "</div></div>";
+  if (b.closed){
+    h += '<p class="construction">' + (lang === "en" ? "Under renovation. Not open for now." : "改建中，暫不開放。") + "</p></section>";
+    return h;
+  }
+  var tags = FEATURES.filter(function(f){ return b.f[f.k]; });
+  if (tags.length){ h += '<div class="tags">'; tags.forEach(function(f){ var v = b.f[f.k]; h += '<span class="tag' + (f.k === "elev" || f.k === "ramp" ? " light" : "") + '">' + esc(T(f)) + (v === true ? "" : " " + esc(v)) + "</span>"; }); h += "</div>"; }
+  if (b.note) h += '<p class="note">' + esc(T(b.note)) + "</p>";
+  h += '<div class="row" style="margin:10px 0 4px"><button class="btn" type="button" data-act="route" data-to="' + b.key + '"' + (state.hitFloor ? ' data-floor="' + esc(state.hitFloor) + '" data-text="' + esc(state.hitText || "") + '"' : "") + ">" + (lang === "en" ? "Take me here" : "帶我到這裡") + '</button><button class="btn ghost" type="button" data-act="routefrom" data-from="' + b.key + '">' + (lang === "en" ? "Start from here" : "從這裡出發") + "</button></div>";
+  h += '<h2 style="margin-top:14px">' + (lang === "en" ? "Floors" : "樓層導覽") + (lang === "en" ? ' <span class="note">(room names in Chinese)</span>' : "") + '</h2><div class="floors">';
+  b.floors.forEach(function(fl){
+    var open = state.hitFloor === fl[0];
+    var flags = floorFlags(fl[1]);
+    h += "<details" + (open ? " open" : "") + "><summary><b>" + esc(fl[0]) + '</b><span class="mini">' + flags.map(function(x){ return "<i>" + esc(x) + "</i>"; }).join("") + "</span></summary><ul>";
+    splitItems(fl[1]).forEach(function(it){ h += "<li" + (open && state.hitText === it ? ' class="hit"' : "") + ">" + esc(it) + "</li>"; });
+    h += "</ul></details>";
+  });
+  h += "</div>";
+  h += '<div class="qrmini"><div class="qr" data-qr="' + b.key + '"></div><div><b style="font-size:14px">' + (lang === "en" ? "This building's QR code" : "本棟 QR code") + '</b><p class="note" style="margin:4px 0 0">' + (lang === "en" ? "Scanning it opens the map with this building as “You are here”." : "掃描後，地圖會以本棟作為「你在這裡」。") + "</p></div></div></section>";
+  return h;
+}
+function routeSteps(r){
+  var from = SPOTS[r.from], to = SPOTS[r.to], steps = [];
+  var res = dijkstra(from.node), path = pathTo(res, to.node);
+  r.path = path;
+  steps.push({t:(lang === "en" ? "Start: " : "出發：") + T(from), kind:"start"});
+  if (r.from === r.to){
+    steps.push({t:lang === "en" ? "You are already in this building." : "你已經在這棟樓。", kind:"mid"});
+  } else if (from.node === to.node){
+    var rs = (from.b && to.b && /^(R|S)$/.test(from.b.id) && /^(R|S)$/.test(to.b.id));
+    steps.push({t:rs ? (lang === "en" ? "R and S are connected inside; walk straight through." : "R 與 S 室內相通，直接走過去。") : (lang === "en" ? "They share the same entrance path; it is right next door." : "兩處在同一出入口旁，步行即達。"), kind:"mid"});
+  } else {
+    path.forEach(function(k, i){
+      if ((i === 0 && from.node === k) || (i === path.length - 1 && to.node === k)) return;
+      if (/^g/.test(k) && i !== 0 && i !== path.length - 1) return;
+      steps.push({t:(lang === "en" ? "Pass " : "經過 ") + T(NODES[k]), kind:"mid"});
+    });
+  }
+  var last = (lang === "en" ? "Arrive: " : "抵達：") + T(to);
+  var fl = r.floor || (r.feature && to.b && typeof to.b.f[r.feature] === "string" ? to.b.f[r.feature] : null);
+  if (fl && /\d/.test(fl) && fl !== "1F"){
+    last += lang === "en" ? " → take the elevator to " + fl : " → 搭電梯到 " + fl;
+  }
+  if (r.text) last += "（" + r.text + "）";
+  else if (r.feature) last += " · " + T(feat(r.feature));
+  steps.push({t:last, kind:"end"});
+  return steps;
+}
+function routeView(){
+  var r = state.route; if (!r) return homeView();
+  var to = SPOTS[r.to], zc = spotZone(to) || {color:"#2E7D32", zh:"綠色門號", en:"green gate", shape:"⚑"};
+  var h = '<section class="card"><button type="button" class="back" data-act="back">← ' + (lang === "en" ? "Back" : "返回") + "</button>";
+  h += '<h2 style="font-size:18px">' + (lang === "en" ? "Directions" : "帶我去") + "</h2>";
+  h += '<div class="plan"><label for="r-from">' + (lang === "en" ? "From" : "從") + '<select id="r-from">' + (state.here ? '<option value="' + state.here + '"' + (r.from === state.here ? " selected" : "") + ">" + (lang === "en" ? "My location · " : "我的位置・") + esc(spotName(state.here)) + "</option>" : "") + spotOptions(r.from) + '</select></label><button type="button" class="swap" data-act="swap" aria-label="' + (lang === "en" ? "Swap start and destination" : "交換起點與終點") + '">⇅</button><label for="r-to">' + (lang === "en" ? "To" : "到") + '<select id="r-to">' + spotOptions(r.to) + "</select></label></div>";
+  var steps = routeSteps(r);
+  h += '<div class="follow" style="background:' + zc.color + (zc.dark ? ';color:#3A2A00' : '') + '">' + (lang === "en" ? "Follow the " + zc.shape + " " + T(zc) + " line" : "跟著 " + zc.shape + " " + T(zc) + " 色線走") + "</div>";
+  h += '<ol class="steps">';
+  steps.forEach(function(s, i){
+    var bg = s.kind === "start" ? "#D7263D" : s.kind === "end" ? zc.color : "#8A9492";
+    h += '<li><span class="dot" style="background:' + bg + '">' + (i + 1) + "</span><span>" + esc(s.t) + "</span></li>";
+  });
+  h += "</ol>";
+  if (to.lm) h += '<p class="note" style="margin-top:10px">' + esc(T(to.lm.desc)) + "</p>";
+  if (to.b){
+    var tags = ["gender","acc","nursing","aed"].filter(function(k){ return to.b.f[k]; });
+    if (tags.length){ h += '<p class="note" style="margin-top:10px">' + (lang === "en" ? "At the destination: " : "目的地設施：") + tags.map(function(k){ return T(feat(k)) + " " + fval(to.b.f[k]); }).join(lang === "en" ? "; " : "、") + "</p>"; }
+  }
+  h += '<p class="note">' + (lang === "en" ? "Walking times are being measured on site." : "步行時間待實地測量。") + "</p>";
+  h += '<button class="btn ghost wide" type="button" data-act="back" style="margin-top:6px">' + (lang === "en" ? "Done" : "完成，返回") + "</button></section>";
+  return h;
+}
+
+function bindPanel(){
+  var q = document.getElementById("q");
+  if (q){ q.addEventListener("input", function(){ state.query = q.value; document.getElementById("results").innerHTML = resultsHtml(); }); }
+  var ds = document.getElementById("demo-sel");
+  if (ds) ds.addEventListener("change", function(e){ if (e.target.value) location.hash = e.target.value; else { try { history.replaceState(null, "", location.pathname + location.search); } catch (er) {} setHere(null); } });
+  var rf = document.getElementById("r-from"), rt = document.getElementById("r-to");
+  if (rf) rf.addEventListener("change", function(){ state.route.from = rf.value; state.route.floor = null; state.route.text = null; render(); fitRoute(); });
+  if (rt) rt.addEventListener("change", function(){ state.route.to = rt.value; state.route.feature = null; state.route.floor = null; state.route.text = null; state.sel = SPOTS[rt.value].b ? SPOTS[rt.value].b.id : null; render(); fitRoute(); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-qr]"), function(n){ n.innerHTML = qrSvg(n.getAttribute("data-qr")); });
+}
+document.addEventListener("click", function(e){
+  var t = e.target.closest("[data-act]"); if (!t) return;
+  var a = t.getAttribute("data-act");
+  if (a === "back") goBackButton();
+  else if (a === "openlm") openLandmark(t.getAttribute("data-key"));
+  else if (a === "open") openBuilding(t.getAttribute("data-id"), t.getAttribute("data-floor"), t.getAttribute("data-text"));
+  else if (a === "route") openRoute(t.getAttribute("data-to"), {feature:t.getAttribute("data-feature"), floor:t.getAttribute("data-floor"), text:t.getAttribute("data-text")});
+  else if (a === "routefrom"){ var from = t.getAttribute("data-from"), to = from === "gate1" ? "bldg-r" : (startKey() === from ? "gate1" : startKey()); openRoute(to, {from:from}); }
+  else if (a === "swap"){ var r = state.route, f = r.from; r.from = r.to; r.to = f; r.feature = null; r.floor = null; r.text = null; state.sel = SPOTS[r.to].b ? SPOTS[r.to].b.id : null; render(); fitRoute(); }
+  else if (a === "filter"){ var k = t.getAttribute("data-k"); state.filter = state.filter === k ? null : k; state.zone = null; render(); }
+  else if (a === "zone"){ var zk = t.getAttribute("data-k"); state.zone = state.zone === zk ? null : zk; state.filter = null; render(); }
+});
+
+/* ===================== MAP OVERLAYS ===================== */
+var walker = null, walkerRaf = null;
+function refreshMap(){
+  var routing = state.view === "route" && state.route;
+  BUILDINGS.forEach(function(b){
+    var dim = false;
+    if (state.view === "home"){ if (state.filter && !b.f[state.filter]) dim = true; if (state.zone && b.zone !== state.zone) dim = true; }
+    var on = state.sel === b.id || (routing && (SPOTS[state.route.from].b === b));
+    if (!dim && state.view === "home" && (state.filter || state.zone)) {}
+    (bldEls[b.id] || []).forEach(function(g){ g.classList.toggle("dim", dim); g.classList.toggle("sel", on); });
+    if (lblEls[b.id]){ lblEls[b.id].classList.toggle("dim", dim); lblEls[b.id].classList.toggle("show", on || (state.view === "home" && state.filter && !dim)); }
+  });
+  LANDMARKS.forEach(function(l){
+    var dimL = state.view === "home" && (state.filter || (state.zone && state.zone !== l.zone));
+    (bldEls[l.id] || []).forEach(function(g){ g.classList.toggle("dim", !!dimL); });
+    var lb = layers.labels.querySelector('.lm-lbl[data-id="' + l.id + '"]'); if (lb) lb.classList.toggle("dim", !!dimL);
+  });
+  ["route","ghost"].forEach(function(k){ while (layers[k].firstChild) layers[k].removeChild(layers[k].firstChild); });
+  Array.prototype.slice.call(layers.pins.querySelectorAll(".dyn")).forEach(function(n){ n.remove(); });
+  if (walkerRaf) cancelAnimationFrame(walkerRaf);
+
+  if (state.view === "home" && state.filter){
+    BUILDINGS.forEach(function(b){
+      if (!b.f[state.filter] || b.closed) return;
+      var p = b.parts[0], top = P(p[0], p[1], b.fl*FLOOR + (b.tower ? 10 : 0)), txt = fval(b.f[state.filter]), w = textW(txt, 13) + 18;
+      var g = el("g", {"class":"dyn", "aria-hidden":"true"}, layers.pins);
+      el("rect", {x:top[0]+20, y:top[1]-14, width:w, height:25, rx:12.5, fill:"#17211F"}, g);
+      el("text", {x:top[0]+20+w/2, y:top[1]+3, "text-anchor":"middle", "font-size":13, "font-weight":700, fill:"#fff"}, g).textContent = txt;
+    });
+  }
+  if (routing){
+    var r = state.route; routeSteps(r);
+    var from = SPOTS[r.from], to = SPOTS[r.to], zc2 = spotZone(to), color = zc2 ? zc2.color : "#2E7D32";
+    var line = [];
+    if (from.b || from.lm){ var fc = spotPos(from); line.push(P(fc[0], fc[1])); }
+    r.path.forEach(function(k){ line.push(P(NODES[k].p[0], NODES[k].p[1])); });
+    if (to.b || to.lm){ var tc = spotPos(to); line.push(P(tc[0], tc[1])); }
+    if (line.length >= 2){
+      el("polyline", {points:pts(line), fill:"none", stroke:"#fff", "stroke-width":13, "stroke-linecap":"round", "stroke-linejoin":"round"}, layers.route);
+      el("polyline", {"class":"march", points:pts(line), fill:"none", stroke:color, "stroke-width":7.5, "stroke-linecap":"round", "stroke-linejoin":"round", "stroke-dasharray":"14 14"}, layers.route);
+      el("polyline", {points:pts(line), fill:"none", stroke:color, "stroke-width":3, "stroke-dasharray":"4 8", opacity:0.55, "stroke-linecap":"round"}, layers.ghost);
+      var e0 = line[0];
+      var sg = el("g", {"class":"dyn", "aria-hidden":"true"}, layers.pins);
+      el("circle", {cx:e0[0], cy:e0[1], r:8, fill:"#fff", stroke:"#D7263D", "stroke-width":4}, sg);
+      walker = el("g", {"class":"dyn", "aria-hidden":"true"}, layers.pins);
+      el("ellipse", {cx:0, cy:0, rx:8, ry:3.5, fill:"rgba(0,0,0,.25)"}, walker);
+      el("rect", {x:-5.5, y:-21, width:11, height:15, rx:4.5, fill:color}, walker);
+      el("rect", {x:-4.5, y:-7, width:3.5, height:7, rx:1.5, fill:"#2B2F2E"}, walker);
+      el("rect", {x:1, y:-7, width:3.5, height:7, rx:1.5, fill:"#2B2F2E"}, walker);
+      el("circle", {cx:0, cy:-27, r:6.5, fill:"#FFE0C2", stroke:"#17211F", "stroke-width":1}, walker);
+      el("path", {d:"M-6.5 -28 a6.5 6.5 0 0 1 13 0 z", fill:"#2B2F2E"}, walker);
+      animateWalker(line);
+    }
+  }
+  if (state.here){
+    var hp = NODES[SPOTS[state.here].node].p, s = P(hp[0], hp[1]);
+    if (SPOTS[state.here].b){ var bc = centerOf(SPOTS[state.here].b); s = P(bc[0], bc[1], SPOTS[state.here].b.fl*FLOOR + 6); }
+    else if (SPOTS[state.here].lm){ var lp = SPOTS[state.here].lm.pos; s = P(lp[0], lp[1], 18); }
+    var g = el("g", {"class":"dyn", "aria-hidden":"true"}, layers.pins);
+    el("ellipse", {"class":"pulse", cx:s[0], cy:s[1], rx:14, ry:7, fill:"none", stroke:"#D7263D", "stroke-width":3}, g);
+    el("path", {d:"M" + s[0] + " " + s[1] + " l-11 -20 a12.5 12.5 0 1 1 22 0 z", fill:"#D7263D", stroke:"#fff", "stroke-width":2}, g);
+    el("circle", {cx:s[0], cy:s[1]-25, r:4.5, fill:"#fff"}, g);
+    var hl = lang === "en" ? "You are here" : "你在這裡", w2 = textW(hl, 14) + 20;
+    el("rect", {x:s[0]-w2/2, y:s[1]-68, width:w2, height:27, rx:13.5, fill:"#D7263D"}, g);
+    el("text", {x:s[0], y:s[1]-49.5, "text-anchor":"middle", "font-size":14, "font-weight":900, fill:"#fff"}, g).textContent = hl;
+  }
+}
+function animateWalker(line){
+  var segs = [], total = 0;
+  for (var i = 0; i < line.length - 1; i++){ var d = Math.hypot(line[i+1][0]-line[i][0], line[i+1][1]-line[i][1]); segs.push(d); total += d; }
+  function at(t){ var target = t * total; for (var i = 0; i < segs.length; i++){ if (target <= segs[i] || i === segs.length - 1){ var f = segs[i] ? Math.min(1, target / segs[i]) : 0; return [line[i][0] + (line[i+1][0]-line[i][0])*f, line[i][1] + (line[i+1][1]-line[i][1])*f]; } target -= segs[i]; } return line[line.length-1]; }
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || total < 1){ var e = at(1); walker.setAttribute("transform", "translate(" + e[0] + " " + e[1] + ")"); return; }
+  var dur = Math.max(2500, total * 6), t0 = null;
+  function step(ts){ if (t0 === null) t0 = ts; var t = ((ts - t0) % (dur + 900)) / dur, p = at(Math.min(1, t)); walker.setAttribute("transform", "translate(" + p[0].toFixed(1) + " " + p[1].toFixed(1) + ")"); walkerRaf = requestAnimationFrame(step); }
+  walkerRaf = requestAnimationFrame(step);
+}
+function fitRoute(){
+  var r = state.route; if (!r || !r.path) return;
+  var ptsA = r.path.map(function(k){ return P(NODES[k].p[0], NODES[k].p[1]); });
+  [SPOTS[r.from], SPOTS[r.to]].forEach(function(s){ var c = spotPos(s); ptsA.push(P(c[0], c[1], s.b ? s.b.fl*FLOOR : 20)); });
+  var xs = ptsA.map(function(a){ return a[0]; }), ys = ptsA.map(function(a){ return a[1]; });
+  var span = Math.max((Math.max.apply(null, xs) - Math.min.apply(null, xs)) / base.w, (Math.max.apply(null, ys) - Math.min.apply(null, ys)) / base.h);
+  zoomTo([(Math.min.apply(null, xs) + Math.max.apply(null, xs))/2, (Math.min.apply(null, ys) + Math.max.apply(null, ys))/2 - 15], Math.min(2.6, 0.75 / Math.max(span, 0.18)));
+  if (window.innerWidth < 920){ var m = document.querySelector(".mapwrap"); if (m) m.scrollIntoView({block:"start", behavior:"smooth"}); }
+}
+
+/* ===================== QR ===================== */
+function urlFor(key){ return baseUrl.replace(/#.*$/, "") + "#" + key; }
+function qrSvg(key){
+  if (typeof window.qrcode !== "function") return '<div class="qrfail">' + esc(urlFor(key)) + "</div>";
+  try { var q = window.qrcode(0, "M"); q.addData(urlFor(key)); q.make(); return q.createSvgTag({cellSize:4, margin:2, scalable:true}); }
+  catch (e) { return '<div class="qrfail">' + esc(urlFor(key)) + "</div>"; }
+}
+function renderQrSheet(){
+  var g = document.getElementById("qrgrid"), h = "";
+  Object.keys(SPOTS).forEach(function(k){
+    var s = SPOTS[k]; if (s.b && s.b.closed) return;
+    var col = s.b ? ZONES[s.b.zone].color : s.lm ? "#B88A2E" : "#2E7D32";
+    h += '<div class="qrcard"><div class="qr">' + qrSvg(k) + '</div><b><span class="sw" style="background:' + col + ';margin-right:6px"></span>' + esc(spotName(k)) + "</b><code>#" + esc(k) + "</code></div>";
+  });
+  g.innerHTML = h;
+}
+var bu = document.getElementById("baseurl");
+bu.value = baseUrl;
+bu.addEventListener("change", function(){ baseUrl = bu.value.trim() || DEFAULT_BASE; try { localStorage.setItem("shu-map-base", baseUrl); } catch (e) {} renderQrSheet(); render(); });
+
+/* ===================== STATIC TEXT ===================== */
+function renderStatic(){
+  document.documentElement.lang = lang === "en" ? "en" : "zh-Hant";
+  document.getElementById("lang").textContent = lang === "en" ? "中文" : "EN";
+  document.getElementById("t-sub").textContent = lang === "en" ? "Shih Hsin University interactive map" : "世新大學互動地圖";
+  document.getElementById("t-hint").textContent = lang === "en" ? "Drag to move · tap a building" : "拖曳移動・點建築看樓層";
+  document.getElementById("map-title").textContent = lang === "en" ? "Shih Hsin University 2.5D campus map" : "世新大學 2.5D 校園地圖";
+  document.getElementById("qr-title").textContent = lang === "en" ? "QR codes for every building and gate" : "各棟大樓與入口的 QR code";
+  document.getElementById("t-qrnote").textContent = lang === "en" ? "Each QR code opens the map with that spot as “You are here”." : "每個 QR code 打開時，會以那個位置當作「你在這裡」。";
+  document.getElementById("t-base").textContent = lang === "en" ? "Public link (from Share)" : "公開網址（按「分享」後取得）";
+  document.getElementById("t-foot").textContent = lang === "en"
+    ? "Prototype. Building positions are approximate, traced from the campus floor plan; heights follow floor counts. English names follow the university\u2019s official names where they exist. Radio & TV Centers B and T are under renovation."
+    : "原型：建築位置依校園平面圖概略繪製，高度依樓層數；英文名稱採學校官方譯名（官方未列者為建議譯名）。廣電大樓 B、T 改建中。";
+}
+document.getElementById("lang").addEventListener("click", function(){
+  lang = lang === "en" ? "zh" : "en";
+  try { localStorage.setItem("shu-map-lang", lang); } catch (e) {}
+  build(); render(); renderQrSheet();
+});
+
+/* ===================== LOCATION ===================== */
+function setHere(key){
+  state.here = key && SPOTS[key] ? key : null;
+  stack = []; state.view = "home"; state.route = null; state.sel = null;
+  if (state.here && SPOTS[state.here].b){ state.view = "building"; state.sel = SPOTS[state.here].b.id; }
+  if (state.here && SPOTS[state.here].lm){ state.view = "landmark"; state.lmKey = state.here; state.sel = SPOTS[state.here].lm.id; }
+  render();
+  if (state.here){ var p = spotPos(SPOTS[state.here]); zoomTo(P(p[0], p[1], 30), 2.2); }
+}
+function readLocation(){
+  var h = (location.hash || "").replace("#", ""), q = null;
+  try { q = new URLSearchParams(location.search).get("at"); } catch (e) {}
+  setHere(SPOTS[h] ? h : (SPOTS[q] ? q : null));
+}
+window.addEventListener("hashchange", readLocation);
+
+build();
+render();
+renderQrSheet();
+readLocation();
+})();
+</script>
+</body>
+</html>
