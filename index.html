@@ -133,23 +133,41 @@ svg.zoomed .closed-name{opacity:0}
 }
 @keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.2);opacity:0}}
 @keyframes march{to{stroke-dashoffset:-28}}
-/* wishing fountain */
-.wish{margin:12px 0 4px;padding:14px;border-radius:14px;background:linear-gradient(180deg,#F4FAFB,#E3F1F3);border:1px solid var(--line)}
-.wish h3{margin:0 0 4px;font-size:15px;font-weight:900}
-.pool{position:relative;height:74px;margin:8px 0 10px;border-radius:50%/40%;background:radial-gradient(ellipse at 50% 60%,#9CD3DC 0%,#6FB6C4 60%,#4E98A8 100%);overflow:hidden;box-shadow:inset 0 -6px 0 rgba(0,0,0,.08)}
-.pool .globe{position:absolute;left:50%;top:22px;width:26px;height:26px;margin-left:-13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9D3D6 55%,#8C9A9E)}
-.pool .globe::after{content:"";position:absolute;left:-9px;top:9px;width:40px;height:8px;border:2px solid #7E8B8F;border-radius:50%;transform:rotate(-14deg)}
-.pool .coin{position:absolute;left:66%;top:-30px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFE89A,#E2B33C 60%,#B8862A);box-shadow:0 1px 0 #8A6418;opacity:0}
-.pool .ring{position:absolute;left:66%;top:52%;width:20px;height:8px;margin:-4px 0 0 -10px;border:2px solid rgba(255,255,255,.9);border-radius:50%;opacity:0}
-.pool.drop .coin{animation:coin .7s cubic-bezier(.5,0,.8,.6) forwards}
-.pool.drop .ring{animation:ring .8s .62s ease-out forwards}
-.pool.drop .ring.r2{animation-delay:.78s}
-@keyframes coin{0%{top:-30px;opacity:1;transform:rotateY(0)}80%{opacity:1}100%{top:40%;opacity:0;transform:rotateY(720deg) scale(.6)}}
-@keyframes ring{0%{opacity:1;transform:scale(.4)}100%{opacity:0;transform:scale(4)}}
-@media (prefers-reduced-motion:reduce){.pool.drop .coin,.pool.drop .ring{animation:none}}
-.wish input{width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;margin-bottom:8px;background:#fff}
-.wish-msg{min-height:1.5em;margin:10px 0 2px;font-weight:700}
+/* wishing fountain — magic edition */
+.wish{position:relative;overflow:hidden;isolation:isolate;margin:12px 0 4px;padding:16px;border-radius:16px;color:#F3EEFF;background:radial-gradient(120% 90% at 50% 0%,#3D2C80 0%,#1C1945 55%,#0D0F26 100%);border:1px solid #3A3470;box-shadow:0 8px 30px rgba(40,20,110,.25)}
+.wish h3{margin:0 0 4px;font-size:17px;font-weight:900;letter-spacing:.06em;background:linear-gradient(90deg,#FFE7A3,#FFFFFF,#B9E8FF,#FFE7A3);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
+.wish .note{color:#CFC8F0}
+.wish .sky{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.wish .sky i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 0 6px 2px rgba(255,255,255,.6);opacity:.25}
+.pool{position:relative;height:100px;margin:10px 0 12px;border-radius:50%/42%;background:radial-gradient(ellipse at 50% 55%,#B8F3FF 0%,#5FC9DD 38%,#2A7FA8 75%,#18456E 100%);overflow:hidden;box-shadow:0 0 26px rgba(120,220,255,.45),inset 0 -8px 0 rgba(0,0,0,.18)}
+.pool::before{content:"";position:absolute;inset:-40%;background:repeating-radial-gradient(ellipse at 30% 40%,rgba(255,255,255,.18) 0 6px,transparent 6px 22px);mix-blend-mode:screen;opacity:.55}
+.pool .globe{position:absolute;left:50%;top:28px;width:30px;height:30px;margin-left:-15px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#D7E4EA 50%,#8FA3AA);box-shadow:0 0 14px 3px rgba(200,240,255,.7)}
+.pool .globe::after{content:"";position:absolute;left:-10px;top:11px;width:46px;height:9px;border:2px solid #E9F6FF;border-radius:50%;transform:rotate(-14deg);box-shadow:0 0 8px rgba(255,255,255,.8)}
+.wish input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid rgba(255,255,255,.22);border-radius:10px;font:inherit;margin-bottom:10px;background:rgba(255,255,255,.08);color:#fff}
+.wish input::placeholder{color:#B9B2DD}
+.wish .btn{position:relative;border:0;color:#2A1E00;font-weight:900;background:linear-gradient(100deg,#E9AE3C,#FFE7A3 45%,#FFF6D8 50%,#FFE7A3 55%,#E9AE3C);background-size:220% 100%;box-shadow:0 0 18px rgba(245,196,81,.5)}
+.wish-msg{min-height:1.6em;margin:12px 0 4px;font-weight:900;font-size:16px;color:#FFF3C4;text-shadow:0 0 10px rgba(255,214,120,.9),0 0 22px rgba(255,170,240,.5)}
 .wish-msg:empty{margin:0}
+.wish-msg .ch{display:inline-block;white-space:pre}
+.wish #wish-count{color:#CFC8F0}
+.wish canvas.fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+@media (prefers-reduced-motion:no-preference){
+  .wish h3{animation:shine 4s linear infinite}
+  .wish .btn{animation:shine 3s linear infinite}
+  .wish .sky i{animation:twinkle 2.6s ease-in-out infinite}
+  .pool::before{animation:caustic 9s linear infinite}
+  .wish.cast .pool{animation:poolflash 1.2s ease-out}
+  .wish.cast .globe{animation:globeglow 1.4s ease-out}
+  .wish.cast.big{animation:aurora 2s ease-out}
+  .wish-msg .ch{opacity:0;animation:letter .55s cubic-bezier(.2,.8,.2,1) forwards}
+}
+@keyframes shine{to{background-position:-220% 0}}
+@keyframes twinkle{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:1;transform:scale(1.25)}}
+@keyframes caustic{to{transform:translate(18%,10%) rotate(20deg)}}
+@keyframes poolflash{0%{filter:brightness(1)}20%{filter:brightness(1.9) saturate(1.4)}100%{filter:brightness(1)}}
+@keyframes globeglow{0%{box-shadow:0 0 14px 3px rgba(200,240,255,.7)}25%{box-shadow:0 0 40px 18px rgba(255,230,150,.95)}100%{box-shadow:0 0 14px 3px rgba(200,240,255,.7)}}
+@keyframes aurora{0%{box-shadow:0 8px 30px rgba(40,20,110,.25)}30%{box-shadow:0 0 60px 10px rgba(255,150,240,.55),0 0 90px 20px rgba(120,220,255,.4)}100%{box-shadow:0 8px 30px rgba(40,20,110,.25)}}
+@keyframes letter{from{opacity:0;transform:translateY(8px) scale(.5);filter:blur(5px)}to{opacity:1;transform:none;filter:none}}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (max-width:920px){
   main{grid-template-columns:1fr;padding:12px}
@@ -196,7 +214,7 @@ svg.zoomed .closed-name{opacity:0}
 (function(){
 "use strict";
 var NS = "http://www.w3.org/2000/svg";
-var DEFAULT_BASE = "https://duckduckooo.github.io/shu-map-wayforall";
+var DEFAULT_BASE = "https://duckduckooo.github.io/shu-map-wayforall/";
 var lang = "zh", baseUrl = DEFAULT_BASE;
 try {
   var sl = localStorage.getItem("shu-map-lang"); if (sl === "en" || sl === "zh") lang = sl;
@@ -834,7 +852,11 @@ function openLandmark(key){
   go("landmark", {sel:l.id, lmKey:key});
   zoomTo(P(l.pos[0], l.pos[1], 10), Math.max(view.s, 2.6));
 }
-/* wishing fountain: a coin, a ripple and a blessing. Wishes are not saved or sent anywhere. */
+/* ===== Wishing fountain — magic edition =====
+   A coin flies from the button into the fountain with a sparkle trail, then the
+   water flashes, stars burst out, fireflies rise and the blessing appears letter by
+   letter. About 1 in 8 tosses is a "double magic" rainbow shower.
+   Wishes are never saved or sent anywhere; only the coin count is kept on this device. */
 var WISHES = [
   ["期中考會的都考，不會的都不考。", "Everything you studied shows up on the exam."],
   ["今天的電梯，一按就到。", "The elevator comes the moment you press the button."],
@@ -847,29 +869,112 @@ var WISHES = [
 ];
 function coinCount(){ try { return parseInt(localStorage.getItem("shu-map-coins") || "0", 10) || 0; } catch (e) { return 0; } }
 function wishBlock(){
-  var n = coinCount(), en = lang === "en";
-  var h = '<div class="wish"><h3>' + (en ? "Make a wish" : "投幣許願") + '</h3>';
+  var n = coinCount(), en = lang === "en", sky = "";
+  for (var i = 0; i < 14; i++) sky += '<i style="left:' + ((i * 37 + 11) % 97) + '%;top:' + ((i * 53 + 7) % 92) + '%;animation-delay:' + ((i * 0.37) % 2.6).toFixed(2) + 's"></i>';
+  var h = '<div class="wish" id="wish"><div class="sky" aria-hidden="true">' + sky + '</div><h3>' + (en ? "✦ Make a wish ✦" : "✦ 投幣許願 ✦") + '</h3>';
   h += '<p class="note" style="margin:0">' + (en ? "Toss a coin into the Magic Fountain. Your wish is never saved or sent anywhere." : "在魔法噴水池丟一枚硬幣。願望只留在你心裡，不會被儲存或傳送。") + "</p>";
-  h += '<div class="pool" id="pool" aria-hidden="true"><span class="globe"></span><span class="coin"></span><span class="ring"></span><span class="ring r2"></span></div>';
+  h += '<div class="pool" id="pool" aria-hidden="true"><span class="globe"></span></div>';
   h += '<label class="sr-only" for="wish-txt">' + (en ? "Your wish" : "你的願望") + '</label><input id="wish-txt" type="text" maxlength="40" autocomplete="off" placeholder="' + (en ? "Your wish (optional)" : "寫下你的願望（可不寫）") + '">';
   h += '<button class="btn wide" type="button" data-act="wish">' + (en ? "Toss a coin" : "投一枚硬幣") + "</button>";
   h += '<p class="wish-msg" id="wish-msg" aria-live="polite"></p>';
   h += '<p class="note" id="wish-count" style="margin:0">' + (n ? (en ? "Coins you have tossed: " + n : "你已經投了 " + n + " 枚硬幣") : "") + "</p></div>";
   return h;
 }
+
+var FX = {canvas:null, ctx:null, host:null, parts:[], coins:[], raf:0, last:0, dpr:1};
+var FX_COLORS = ["#FFD66B", "#FFF3C4", "#8FE9FF", "#FF9FE5", "#B79CFF", "#FFFFFF"];
+var FX_RAINBOW = ["#FF6B9A", "#FFB86B", "#FFE66B", "#7CF29A", "#6BD8FF", "#9C8CFF", "#F28CFF"];
+function fxCanvas(host){
+  if (FX.host !== host || !FX.canvas || !host.contains(FX.canvas)){
+    FX.canvas = document.createElement("canvas"); FX.canvas.className = "fx"; FX.canvas.setAttribute("aria-hidden", "true");
+    host.appendChild(FX.canvas); FX.host = host; FX.ctx = FX.canvas.getContext("2d"); FX.parts = []; FX.coins = [];
+  }
+  FX.dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var w = host.clientWidth, h = host.clientHeight;
+  if (FX.canvas.width !== Math.round(w * FX.dpr) || FX.canvas.height !== Math.round(h * FX.dpr)){
+    FX.canvas.width = Math.round(w * FX.dpr); FX.canvas.height = Math.round(h * FX.dpr);
+  }
+  FX.ctx.setTransform(FX.dpr, 0, 0, FX.dpr, 0, 0);
+}
+function rnd(a, b){ return a + Math.random() * (b - a); }
+function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+function spark(x, y, o){
+  o = o || {};
+  var ang = o.ang != null ? o.ang : rnd(0, Math.PI * 2), sp = o.sp != null ? o.sp : rnd(1, 4);
+  FX.parts.push({x:x, y:y, vx:Math.cos(ang) * sp, vy:Math.sin(ang) * sp, g:o.g != null ? o.g : 0.05, life:o.life || rnd(50, 100), max:0,
+    size:o.size || rnd(2, 5), color:o.color || pick(FX_COLORS), kind:o.kind || (Math.random() < 0.55 ? "star" : "dot"), rot:rnd(0, 6.28), vr:rnd(-0.2, 0.2), wob:o.wob || 0, ph:rnd(0, 6.28)});
+  FX.parts[FX.parts.length - 1].max = FX.parts[FX.parts.length - 1].life;
+}
+function ringFx(x, y, delay, color){ FX.parts.push({x:x, y:y, kind:"ring", r:4, vr:1.6, life:50, max:50, delay:delay || 0, color:color || "#E9FBFF"}); }
+function splash(x, y, big){
+  var host = FX.host; if (host){ host.classList.remove("cast", "big"); void host.offsetWidth; host.classList.add("cast"); if (big) host.classList.add("big"); }
+  var n = big ? 160 : 72, cols = big ? FX_RAINBOW : FX_COLORS;
+  for (var i = 0; i < n; i++) spark(x, y, {ang:-Math.PI / 2 + rnd(-1.25, 1.25), sp:rnd(2, big ? 8 : 6), g:0.06, life:rnd(70, big ? 170 : 130), color:pick(cols), size:rnd(2.5, big ? 7 : 5.5)});
+  for (var j = 0; j < (big ? 40 : 24); j++) spark(x + rnd(-40, 40), y + rnd(-6, 6), {ang:-Math.PI / 2 + rnd(-0.4, 0.4), sp:rnd(0.3, 0.9), g:-0.004, life:rnd(150, 260), kind:"dot", size:rnd(2, 3.5), color:pick(["#FFF3C4", "#C9F6FF", "#FFD1F4"]), wob:rnd(0.4, 1)});
+  ringFx(x, y, 0); ringFx(x, y, 10); ringFx(x, y, 22, "#FFE7A3");
+  if (big) for (var k = 0; k < 4; k++) ringFx(x, y, 30 + k * 10, pick(FX_RAINBOW));
+}
+function drawStar(c, x, y, r, rot){
+  c.save(); c.translate(x, y); c.rotate(rot); c.beginPath();
+  for (var i = 0; i < 8; i++){ var a = i * Math.PI / 4, rr = i % 2 ? r * 0.28 : r; c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+  c.closePath(); c.fill(); c.restore();
+}
+function fxLoop(ts){
+  var c = FX.ctx, w = FX.canvas.width / FX.dpr, h = FX.canvas.height / FX.dpr;
+  var dt = FX.last ? Math.min((ts - FX.last) / 16.67, 3) : 1; FX.last = ts;
+  c.clearRect(0, 0, w, h); c.globalCompositeOperation = "lighter";
+  FX.coins = FX.coins.filter(function(k){
+    k.t += dt / k.dur; var t = Math.min(k.t, 1), u = 1 - t;
+    var x = u * u * k.x0 + 2 * u * t * k.cx + t * t * k.x1, y = u * u * k.y0 + 2 * u * t * k.cy + t * t * k.y1;
+    for (var i = 0; i < 3; i++) spark(x + rnd(-3, 3), y + rnd(-3, 3), {sp:rnd(0.2, 1.2), g:0.02, life:rnd(25, 45), size:rnd(1.5, 3.5), color:pick(k.big ? FX_RAINBOW : ["#FFD66B", "#FFF3C4", "#FFFFFF"])});
+    var s = 10 * (1 - 0.35 * t), flip = Math.abs(Math.cos(k.t * 14));
+    c.save(); c.globalCompositeOperation = "source-over"; c.shadowColor = "rgba(255,214,107,.95)"; c.shadowBlur = 18;
+    var g = c.createRadialGradient(x - s * 0.3, y - s * 0.3, 1, x, y, s); g.addColorStop(0, "#FFF6C8"); g.addColorStop(0.6, "#F2C14E"); g.addColorStop(1, "#B8862A");
+    c.fillStyle = g; c.beginPath(); c.ellipse(x, y, Math.max(s * flip, 1.5), s, 0, 0, Math.PI * 2); c.fill(); c.restore();
+    if (k.t >= 1){ splash(k.x1, k.y1, k.big); if (k.done) k.done(); return false; }
+    return true;
+  });
+  FX.parts = FX.parts.filter(function(p){
+    if (p.delay > 0){ p.delay -= dt; return true; }
+    p.life -= dt; if (p.life <= 0) return false;
+    var a = Math.max(p.life / p.max, 0);
+    if (p.kind === "ring"){
+      p.r += p.vr * dt; c.globalAlpha = a; c.strokeStyle = p.color; c.lineWidth = 2;
+      c.beginPath(); c.ellipse(p.x, p.y, p.r * 1.6, p.r * 0.45, 0, 0, Math.PI * 2); c.stroke(); c.globalAlpha = 1; return true;
+    }
+    p.vy += p.g * dt; p.x += (p.vx + (p.wob ? Math.sin(ts / 300 + p.ph) * p.wob * 0.4 : 0)) * dt; p.y += p.vy * dt; p.vx *= Math.pow(0.99, dt); p.rot += p.vr * dt;
+    c.globalAlpha = a * (0.6 + 0.4 * Math.sin(ts / 80 + p.ph)); c.fillStyle = p.color; c.shadowColor = p.color; c.shadowBlur = 10;
+    if (p.kind === "star") drawStar(c, p.x, p.y, p.size * 1.8, p.rot); else { c.beginPath(); c.arc(p.x, p.y, p.size * 0.6, 0, Math.PI * 2); c.fill(); }
+    c.shadowBlur = 0; c.globalAlpha = 1; return true;
+  });
+  if (FX.parts.length || FX.coins.length) FX.raf = requestAnimationFrame(fxLoop);
+  else { c.clearRect(0, 0, w, h); FX.raf = 0; FX.last = 0; }
+}
+function showBlessing(msg, text){
+  msg.innerHTML = "";
+  Array.prototype.forEach.call(text, function(ch, i){
+    var s = document.createElement("span"); s.className = "ch"; s.textContent = ch; s.style.animationDelay = (i * 0.04).toFixed(2) + "s"; msg.appendChild(s);
+  });
+}
 function tossCoin(){
-  var pool = document.getElementById("pool"), msg = document.getElementById("wish-msg"), cnt = document.getElementById("wish-count"), txt = document.getElementById("wish-txt");
-  if (!pool) return;
-  var en = lang === "en", n = coinCount() + 1;
+  var host = document.getElementById("wish"), pool = document.getElementById("pool"), msg = document.getElementById("wish-msg"),
+      cnt = document.getElementById("wish-count"), txt = document.getElementById("wish-txt"), btn = document.querySelector('[data-act="wish"]');
+  if (!host || !pool) return;
+  var en = lang === "en", n = coinCount() + 1, big = Math.random() < 0.125;
   try { localStorage.setItem("shu-map-coins", String(n)); } catch (e) {}
-  pool.classList.remove("drop"); void pool.offsetWidth; pool.classList.add("drop");
-  msg.textContent = "";
-  var w = WISHES[Math.floor(Math.random() * WISHES.length)];
-  setTimeout(function(){
-    msg.textContent = (txt && txt.value.trim() ? (en ? "Wish received. " : "願望收到了。") : "") + (en ? w[1] : w[0]);
-    cnt.textContent = en ? "Coins you have tossed: " + n : "你已經投了 " + n + " 枚硬幣";
-    if (txt) txt.value = "";
-  }, 900);
+  var w = WISHES[Math.floor(Math.random() * WISHES.length)], hadWish = txt && txt.value.trim();
+  var text = (big ? (en ? "✦ Double magic! ✦ " : "✦ 魔法加倍！✦ ") : "") + (hadWish ? (en ? "Wish received. " : "願望收到了。") : "") + (en ? w[1] : w[0]);
+  if (txt) txt.value = "";
+  msg.innerHTML = "";
+  function finish(){ showBlessing(msg, text); cnt.textContent = en ? "Coins you have tossed: " + n : "你已經投了 " + n + " 枚硬幣"; }
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || !window.requestAnimationFrame){ finish(); return; }
+  fxCanvas(host);
+  var hr = host.getBoundingClientRect(), pr = pool.getBoundingClientRect(), br = (btn || pool).getBoundingClientRect();
+  var x0 = br.left - hr.left + br.width / 2, y0 = br.top - hr.top + br.height / 2;
+  var x1 = pr.left - hr.left + pr.width * rnd(0.58, 0.72), y1 = pr.top - hr.top + pr.height * 0.6;
+  FX.coins.push({x0:x0, y0:y0, x1:x1, y1:y1, cx:(x0 + x1) / 2 + rnd(-30, 30), cy:Math.min(y0, y1) - 70, t:0, dur:48, big:big, done:finish});
+  if (!FX.raf){ FX.last = 0; FX.raf = requestAnimationFrame(fxLoop); }
 }
 function landmarkView(){
   var l = SPOTS[state.lmKey] && SPOTS[state.lmKey].lm; if (!l) return homeView();
