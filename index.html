@@ -133,6 +133,24 @@ svg.zoomed .closed-name{opacity:0}
 }
 @keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.2);opacity:0}}
 @keyframes march{to{stroke-dashoffset:-28}}
+/* wishing fountain */
+.wish{margin:12px 0 4px;padding:14px;border-radius:14px;background:linear-gradient(180deg,#F4FAFB,#E3F1F3);border:1px solid var(--line)}
+.wish h3{margin:0 0 4px;font-size:15px;font-weight:900}
+.pool{position:relative;height:74px;margin:8px 0 10px;border-radius:50%/40%;background:radial-gradient(ellipse at 50% 60%,#9CD3DC 0%,#6FB6C4 60%,#4E98A8 100%);overflow:hidden;box-shadow:inset 0 -6px 0 rgba(0,0,0,.08)}
+.pool .globe{position:absolute;left:50%;top:22px;width:26px;height:26px;margin-left:-13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFF,#C9D3D6 55%,#8C9A9E)}
+.pool .globe::after{content:"";position:absolute;left:-9px;top:9px;width:40px;height:8px;border:2px solid #7E8B8F;border-radius:50%;transform:rotate(-14deg)}
+.pool .coin{position:absolute;left:66%;top:-30px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFE89A,#E2B33C 60%,#B8862A);box-shadow:0 1px 0 #8A6418;opacity:0}
+.pool .ring{position:absolute;left:66%;top:52%;width:20px;height:8px;margin:-4px 0 0 -10px;border:2px solid rgba(255,255,255,.9);border-radius:50%;opacity:0}
+.pool.drop .coin{animation:coin .7s cubic-bezier(.5,0,.8,.6) forwards}
+.pool.drop .ring{animation:ring .8s .62s ease-out forwards}
+.pool.drop .ring.r2{animation-delay:.78s}
+@keyframes coin{0%{top:-30px;opacity:1;transform:rotateY(0)}80%{opacity:1}100%{top:40%;opacity:0;transform:rotateY(720deg) scale(.6)}}
+@keyframes ring{0%{opacity:1;transform:scale(.4)}100%{opacity:0;transform:scale(4)}}
+@media (prefers-reduced-motion:reduce){.pool.drop .coin,.pool.drop .ring{animation:none}}
+.wish input{width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;margin-bottom:8px;background:#fff}
+.wish-msg{min-height:1.5em;margin:10px 0 2px;font-weight:700}
+.wish-msg:empty{margin:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (max-width:920px){
   main{grid-template-columns:1fr;padding:12px}
   .mapwrap{height:540px}
@@ -178,11 +196,10 @@ svg.zoomed .closed-name{opacity:0}
 (function(){
 "use strict";
 var NS = "http://www.w3.org/2000/svg";
-var DEFAULT_BASE = "https://duckduckooo.github.io/shu-map-wayforall/";
+var DEFAULT_BASE = "https://duckduckooo.github.io/shu-map-wayforall";
 var lang = "zh", baseUrl = DEFAULT_BASE;
 try {
   var sl = localStorage.getItem("shu-map-lang"); if (sl === "en" || sl === "zh") lang = sl;
-  var sb = localStorage.getItem("shu-map-base"); if (sb) baseUrl = sb;
 } catch (e) {}
 
 /* ===================== DATA ===================== */
@@ -228,11 +245,13 @@ var BUILDINGS = [
    floors:[["7F","G701教室；G702教室"],["6F","G601電腦教室；G602電腦教室；廁所"],["5F","G501教室；G502教室；G503教室；廁所"],["4F","G401教室；G402教室；G403教室；廁所"],["3F","G301教室；G302教室；G303教室；廁所"],["2F","G201教學發展中心辦公室；G202A教學發展中心放映室；G202B教學發展中心器材室；G203教學發展中心器材室；廁所"],["1F","G101檔案室；G102教學發展中心辦公及器材室；無障礙廁所（附設照護床）；廁所"],["言論廣場","English Corner；GB101圓桌影音播客直播間；Japanese Corner"]]},
   {id:"B", code:"B", zh:"廣電大樓 B", en:"Radio & TV Center B", zone:"z3", mat:"construction", parts:[[642,402,72,38,18]], fl:4, node:"n5", f:{}, closed:true, floors:[]},
   {id:"T", code:"T", zh:"廣電大樓 T", en:"Radio & TV Center T", zone:"z3", mat:"construction", parts:[[676,458,36,86,12]], fl:4, node:"n5", f:{}, closed:true, floors:[]},
-  {id:"R", code:"R", zh:"舍我樓教學大樓", en:"She-Wo Building", zone:"z4", mat:"brick", parts:[[705,290,112,40,-22]], fl:10, node:"n6",
+  {id:"R", code:"R", zh:"舍我樓教學大樓", en:"She-Wo Building", zone:"z4", mat:"brick", parts:[[705,290,112,40,-22]], fl:10, node:"n6", door:[784,243],
+   entry:{zh:"R、S 的電梯入口都在 S 棟 1F，學餐旁", en:"The R and S elevator entrance is on S 1F, next to the student cafeteria"},
    f:{elev:true, gender:"4F", acc:"4F", nursing:"1F"},
-   note:{zh:"與 S 相通，電梯與樓梯共用", en:"Connected to S; shared elevators and stairs"},
+   note:{zh:"與 S 相通，電梯與樓梯共用。", en:"Connected to S; shared elevators and stairs."},
    floors:[["10F","R1001教室；R1002~R1003教師研究室"],["9F","R908~R909教研室；R903電腦教室；R902聯合辦公室／原資中心／撒奇萊雅族計畫辦公室；R901教室"],["8F","R804研究生自修室；R803教學研討室；R802法律系專用教室；R801實習法庭；R800法律學院讀書室；R805法律服務中心；R806法律系學會；R807世新法學陳列室；廁所"],["7F","R707英語系學會；R706中文系學會；R705廣電系學會；R704教室；R703研究生自修室；R701教室；廁所"],["6F","R607日文系學會；R606社心系學會；R605財金系學會；R604經濟系學會；R601~R603教室；廁所"],["5F","R507企管系學會；R506資管系學會；R505行管系學會；R504資傳系學會；R501~R503教室；廁所"],["4F","R406師培中心檔案室；R405觀光系學會；R404教師休息室；R401~R403教室；無障礙廁所；性別友善廁所"],["3F","R301~R303教室；廁所"],["2F","R201~R203教室；廁所"],["1F","R104教師休息室／導師資源室；R103無障礙資源中心／哺集乳室；R101~R102階梯教室；廁所"]]},
-  {id:"S", code:"S", zh:"舍我樓研究大樓", en:"Research Building", zone:"z4", mat:"brick", parts:[[768,200,58,66,-22]], fl:12, node:"n6", tower:true,
+  {id:"S", code:"S", zh:"舍我樓研究大樓", en:"Research Building", zone:"z4", mat:"brick", parts:[[768,200,58,66,-22]], fl:12, node:"n6", tower:true, door:[784,243],
+   entry:{zh:"R、S 的電梯入口都在 S 棟 1F，學餐旁", en:"The R and S elevator entrance is on S 1F, next to the student cafeteria"},
    f:{elev:true, parking:"B2", aed:"1F 醫務室"},
    note:{zh:"與 R 相通，可使用 R 的性別友善廁所、無障礙廁所與哺集乳室", en:"Connected to R; use R's all-gender and accessible restrooms and nursing room"},
    floors:[["12F","S1201舍我紀念館；S1202辦公室；S1203會議室；S1204環型會議廳；廁所"],["11F","S1101日本語文學系主任辦公室；S1102中國文學系主任辦公室；S1103~S1118教師研究室；廁所"],["10F","S1001副校長辦公室；S1004~S1016教師研究室；廁所"],["9F","S901公共事務室及社會資源中心辦公室；S902企劃管考組辦公室；S903~S916教師研究室；廁所"],["8F","S801智慧財產暨傳播科技法律研究所／法律學系；S802法律學院；S804法律與智慧財產權資料中心；S803、S805~S810、S813、S815教師研究室；廁所"],["7F","S701英語學系主任辦公室；S701-2~S716教師研究室；廁所"],["6F","S601社會心理學系主任辦公室；S601-1~S601-2、S603~S616教師研究室；S602研究生自修室；廁所"],["5F","S501華語文中心主任辦公室；S501-1~S501-2教研室；S502-1~S502-2教研室；S503會議室；S504~S516教師研究室；廁所"],["4F","S401聯合辦公室（廣電、資傳、圖傳）；S402人社院辦公室；S403人社院院長辦公室；S404圖傳系主任辦公室；S405會議室；S406副校長室；廁所"],["3F","S301教學研討室；S302教研室；S303電腦教室；S304語言教室；S305教室；S306~S312教師研究室；廁所"],["2F","S201語言教室；S206英語能力檢測辦公室；S202、S204、S208~S211教師研究室；S203語言教室；S205語言教室；S207外語中心辦公室；廁所"],["1F","S101餐廳；S103廚房；S102醫務室（學務處衛保組，附設AED）"],["B1","監控室；電工室；機車停車場"],["B2","汽車停車場（附設無障礙停車位）"]]},
@@ -294,6 +313,8 @@ var PLAZAS = [
 var LANDMARKS = [
   {key:"spot-fountain", id:"fountain", zh:"魔法噴水池", en:"Magic Fountain", pos:[1078,578], node:"n15", zone:"z6", kind:"fountain",
    desc:{zh:"全媒體大樓正門前的噴水池，中央是金屬環繞的星球雕塑。", en:"The fountain at the Omni-Media Building's main entrance, with a ringed globe sculpture in the middle."}},
+  {key:"spot-cafe", id:"cafe", zh:"學生餐廳（學餐）", en:"Student Cafeteria", pos:[792,236], node:"n6", zone:"z4", kind:"cafe", label:{zh:"學餐・R/S 電梯入口", en:"Cafeteria · R/S entrance"},
+   desc:{zh:"學生餐廳在舍我樓研究大樓 S 1F（S101）。旁邊就是 R、S 兩棟共用的電梯入口，去 R 或 S 都從這裡進出。", en:"The student cafeteria is on S 1F (S101). The shared elevator entrance for the R and S buildings is right next to it."}},
   {key:"spot-statue", id:"statue", zh:"舍我爺爺", en:"Grandpa She-wo statue", pos:[618,318], node:"n4", zone:"z2", kind:"statue",
    desc:{zh:"創辦人成舍我先生的銅像，坐在「世新大學」木牆前，就在言論廣場旁。", en:"Bronze statue of founder Cheng She-wo, seated before the wooden \u201cShih Hsin University\u201d wall beside Speech Square."}}
 ];
@@ -528,7 +549,7 @@ function build(){
 
   /* landmark labels */
   LANDMARKS.forEach(function(l){
-    var s = P(l.pos[0], l.pos[1], l.kind === "fountain" ? 34 : 26), txt = (l.kind === "fountain" ? "⛲ " : "◎ ") + T(l), w = textW(txt, 12) + 16;
+    var s = P(l.pos[0], l.pos[1], l.kind === "fountain" ? 34 : l.kind === "cafe" ? 18 : 26), txt = (l.kind === "fountain" ? "⛲ " : "◎ ") + (l.label ? T(l.label) : T(l)), w = textW(txt, 12) + 16;
     var g = el("g", {"class":"lbl lm-lbl", "data-id":l.id, "aria-hidden":"true"}, layers.labels);
     el("rect", {x:s[0]-w/2, y:s[1]-20, width:w, height:21, rx:10.5, fill:"#FFF8E6", stroke:"#B88A2E", "stroke-width":1.4}, g);
     el("text", {x:s[0], y:s[1]-5.5, "text-anchor":"middle", "font-size":12, "font-weight":900, fill:"#6B4A10"}, g).textContent = txt;
@@ -605,6 +626,17 @@ function drawLandmark(l){
     el("circle", {cx:o[0], cy:o[1], r:6.5, fill:"#8FA9C4"}, g);
     el("circle", {cx:o[0] - 2, cy:o[1] - 2.2, r:2.4, fill:"#EAF3FB"}, g);
     [[-9,6],[9,5],[-4,8],[5,8]].forEach(function(d){ el("path", {d:"M" + (o[0] + d[0]*0.4) + " " + (o[1] + 4) + " q" + (d[0]*0.6) + " -6 " + d[0] + " " + d[1], fill:"none", stroke:"#BFE0F5", "stroke-width":1, opacity:0.9}, g); });
+  } else if (l.kind === "cafe"){
+    /* small terrace, entrance canopy and a fork-and-knife sign */
+    el("polygon", {points:pts(circlePts(c, 15, 28).map(function(p){ return P(p[0], p[1]); })), fill:"#F6E3D2", stroke:"#E3B892", "stroke-width":1}, g);
+    var cv = rectCorners([c[0] - 6, c[1] + 2, 20, 8, -22]), cf = faces(cv);
+    cf.list.forEach(function(f){ el("polygon", {points:pts(fq(f, 0, 1, 9, 12)), fill:f.right ? "#B9541A" : "#E36C0A"}, g); });
+    el("polygon", {points:pts(cf.R.map(function(p){ return PP(p, 12); })), fill:"#F08A3C"}, g);
+    var d0 = P(c[0] - 6, c[1] + 2);
+    el("rect", {x:d0[0] - 4, y:d0[1] - 9, width:8, height:9, fill:"#2B2F2E"}, g);
+    var sg = P(c[0] + 7, c[1] - 2, 14);
+    el("circle", {cx:sg[0], cy:sg[1], r:7.5, fill:"#FFFFFF", stroke:"#E36C0A", "stroke-width":2}, g);
+    el("path", {d:"M" + (sg[0]-2.5) + " " + (sg[1]-4) + " v8 M" + (sg[0]-4) + " " + (sg[1]-4) + " v3 a1.5 1.5 0 0 0 3 0 v-3 M" + (sg[0]+2.5) + " " + (sg[1]-4) + " q2 2 0 5 v3", stroke:"#E36C0A", "stroke-width":1.3, fill:"none", "stroke-linecap":"round"}, g);
   } else {
     /* wooden slat wall with red lettering, bronze seated figure on a stone */
     var wall = rectCorners([c[0] - 2, c[1] - 9, 40, 4, -18]), wf = faces(wall), H = 13;
@@ -739,6 +771,7 @@ function splitItems(t){ return t.split(/[;；]/).map(function(s){ return s.trim(
 function zonePill(zid){ var z = ZONES[zid]; return '<span class="zone-pill" style="background:' + z.color + (z.dark ? ';color:#3A2A00' : '') + '">' + z.shape + " " + esc(T(z)) + "</span>"; }
 function centerOf(b){ var p = b.parts[0]; return [p[0], p[1]]; }
 function spotPos(s){ return s.b ? centerOf(s.b) : s.lm ? s.lm.pos : NODES[s.node].p; }
+function doorPos(s){ return s.b && s.b.door ? s.b.door : spotPos(s); }
 function spotZone(s){ return s.b ? ZONES[s.b.zone] : s.lm ? ZONES[s.lm.zone] : null; }
 function nearestList(k, fromKey){
   var res = dijkstra(SPOTS[fromKey].node);
@@ -801,12 +834,50 @@ function openLandmark(key){
   go("landmark", {sel:l.id, lmKey:key});
   zoomTo(P(l.pos[0], l.pos[1], 10), Math.max(view.s, 2.6));
 }
+/* wishing fountain: a coin, a ripple and a blessing. Wishes are not saved or sent anywhere. */
+var WISHES = [
+  ["期中考會的都考，不會的都不考。", "Everything you studied shows up on the exam."],
+  ["今天的電梯，一按就到。", "The elevator comes the moment you press the button."],
+  ["報告一次就過。", "Your report passes on the first try."],
+  ["學餐今天有你想吃的。", "The cafeteria has just what you want today."],
+  ["想選的課，全部選上。", "You get every course you signed up for."],
+  ["下雨天剛好有帶傘。", "It rains only on the days you brought an umbrella."],
+  ["走到哪裡，都有同路人。", "Wherever you go, someone walks with you."],
+  ["想去的地方，都找得到路。", "You will find your way to wherever you want to go."]
+];
+function coinCount(){ try { return parseInt(localStorage.getItem("shu-map-coins") || "0", 10) || 0; } catch (e) { return 0; } }
+function wishBlock(){
+  var n = coinCount(), en = lang === "en";
+  var h = '<div class="wish"><h3>' + (en ? "Make a wish" : "投幣許願") + '</h3>';
+  h += '<p class="note" style="margin:0">' + (en ? "Toss a coin into the Magic Fountain. Your wish is never saved or sent anywhere." : "在魔法噴水池丟一枚硬幣。願望只留在你心裡，不會被儲存或傳送。") + "</p>";
+  h += '<div class="pool" id="pool" aria-hidden="true"><span class="globe"></span><span class="coin"></span><span class="ring"></span><span class="ring r2"></span></div>';
+  h += '<label class="sr-only" for="wish-txt">' + (en ? "Your wish" : "你的願望") + '</label><input id="wish-txt" type="text" maxlength="40" autocomplete="off" placeholder="' + (en ? "Your wish (optional)" : "寫下你的願望（可不寫）") + '">';
+  h += '<button class="btn wide" type="button" data-act="wish">' + (en ? "Toss a coin" : "投一枚硬幣") + "</button>";
+  h += '<p class="wish-msg" id="wish-msg" aria-live="polite"></p>';
+  h += '<p class="note" id="wish-count" style="margin:0">' + (n ? (en ? "Coins you have tossed: " + n : "你已經投了 " + n + " 枚硬幣") : "") + "</p></div>";
+  return h;
+}
+function tossCoin(){
+  var pool = document.getElementById("pool"), msg = document.getElementById("wish-msg"), cnt = document.getElementById("wish-count"), txt = document.getElementById("wish-txt");
+  if (!pool) return;
+  var en = lang === "en", n = coinCount() + 1;
+  try { localStorage.setItem("shu-map-coins", String(n)); } catch (e) {}
+  pool.classList.remove("drop"); void pool.offsetWidth; pool.classList.add("drop");
+  msg.textContent = "";
+  var w = WISHES[Math.floor(Math.random() * WISHES.length)];
+  setTimeout(function(){
+    msg.textContent = (txt && txt.value.trim() ? (en ? "Wish received. " : "願望收到了。") : "") + (en ? w[1] : w[0]);
+    cnt.textContent = en ? "Coins you have tossed: " + n : "你已經投了 " + n + " 枚硬幣";
+    if (txt) txt.value = "";
+  }, 900);
+}
 function landmarkView(){
   var l = SPOTS[state.lmKey] && SPOTS[state.lmKey].lm; if (!l) return homeView();
   var z = ZONES[l.zone];
   var h = '<section class="card"><button type="button" class="back" data-act="back">← ' + (lang === "en" ? "Back" : "返回") + "</button>";
-  h += '<div class="d-head"><span class="code" style="background:#B88A2E">' + (l.kind === "fountain" ? "⛲" : "◎") + '</span><div><div class="d-name">' + esc(T(l)) + "</div>" + zonePill(l.zone) + "</div></div>";
+  h += '<div class="d-head"><span class="code" style="background:#B88A2E">' + (l.kind === "fountain" ? "⛲" : l.kind === "cafe" ? "餐" : "◎") + '</span><div><div class="d-name">' + esc(T(l)) + "</div>" + zonePill(l.zone) + "</div></div>";
   h += "<p>" + esc(T(l.desc)) + "</p>";
+  if (l.kind === "fountain") h += wishBlock();
   h += '<div class="row" style="margin:10px 0 4px"><button class="btn" type="button" data-act="route" data-to="' + l.key + '">' + (lang === "en" ? "Take me here" : "帶我到這裡") + '</button><button class="btn ghost" type="button" data-act="routefrom" data-from="' + l.key + '">' + (lang === "en" ? "Start from here" : "從這裡出發") + "</button></div>";
   h += '<div class="qrmini"><div class="qr" data-qr="' + l.key + '"></div><div><b style="font-size:14px">' + (lang === "en" ? "Landmark QR code" : "地標 QR code") + '</b><p class="note" style="margin:4px 0 0">' + (lang === "en" ? "Scanning it opens the map with this landmark as \u201cYou are here\u201d." : "掃描後，地圖會以這個地標作為「你在這裡」。") + "</p></div></div></section>";
   return h;
@@ -847,7 +918,7 @@ function resultsHtml(){
 function hereCard(){
   var h = '<section class="card" aria-live="polite">';
   if (state.here){
-    h += '<div class="here-title"><span class="here-dot"></span>' + (lang === "en" ? "You are here" : "你在這裡") + '</div><p class="here-place">' + esc(spotName(state.here)) + '</p><div class="near">';
+    h += '<div class="here-title"><span class="here-dot"></span>' + (lang === "en" ? "You are here" : "你在這裡") + '</div><p class="here-place">' + esc(spotName(state.here)) + '</p>' + (state.here === "spot-fountain" ? '<button class="btn wide" type="button" data-act="openlm" data-key="spot-fountain" style="margin:0 0 10px">' + (lang === "en" ? "Toss a coin and make a wish" : "投一枚硬幣許願") + '</button>' : '') + '<div class="near">';
     ["gender","acc","nursing"].forEach(function(k){
       var n = nearestList(k, state.here)[0]; if (!n) return;
       var same = SPOTS[state.here].b && SPOTS[state.here].b.node === n.b.node && n.d === 0;
@@ -905,6 +976,7 @@ function buildingView(){
   }
   var tags = FEATURES.filter(function(f){ return b.f[f.k]; });
   if (tags.length){ h += '<div class="tags">'; tags.forEach(function(f){ var v = b.f[f.k]; h += '<span class="tag' + (f.k === "elev" || f.k === "ramp" ? " light" : "") + '">' + esc(T(f)) + (v === true ? "" : " " + esc(v)) + "</span>"; }); h += "</div>"; }
+  if (b.entry) h += '<p class="construction" style="background:#FFF1E6;border-color:#E36C0A;color:#7A3A0A">' + (lang === "en" ? "Entrance: " : "入口：") + esc(T(b.entry)) + "</p>";
   if (b.note) h += '<p class="note">' + esc(T(b.note)) + "</p>";
   h += '<div class="row" style="margin:10px 0 4px"><button class="btn" type="button" data-act="route" data-to="' + b.key + '"' + (state.hitFloor ? ' data-floor="' + esc(state.hitFloor) + '" data-text="' + esc(state.hitText || "") + '"' : "") + ">" + (lang === "en" ? "Take me here" : "帶我到這裡") + '</button><button class="btn ghost" type="button" data-act="routefrom" data-from="' + b.key + '">' + (lang === "en" ? "Start from here" : "從這裡出發") + "</button></div>";
   h += '<h2 style="margin-top:14px">' + (lang === "en" ? "Floors" : "樓層導覽") + (lang === "en" ? ' <span class="note">(room names in Chinese)</span>' : "") + '</h2><div class="floors">';
@@ -936,6 +1008,7 @@ function routeSteps(r){
       steps.push({t:(lang === "en" ? "Pass " : "經過 ") + T(NODES[k]), kind:"mid"});
     });
   }
+  if (to.b && to.b.entry && !(from.b && from.b.entry)) steps.push({t:(lang === "en" ? "Enter at S 1F, next to the cafeteria (shared R/S elevators)" : "從 S 棟 1F 入口進入（學餐旁，R、S 共用電梯）"), kind:"mid"});
   var last = (lang === "en" ? "Arrive: " : "抵達：") + T(to);
   var fl = r.floor || (r.feature && to.b && typeof to.b.f[r.feature] === "string" ? to.b.f[r.feature] : null);
   if (fl && /\d/.test(fl) && fl !== "1F"){
@@ -990,6 +1063,7 @@ document.addEventListener("click", function(e){
   else if (a === "routefrom"){ var from = t.getAttribute("data-from"), to = from === "gate1" ? "bldg-r" : (startKey() === from ? "gate1" : startKey()); openRoute(to, {from:from}); }
   else if (a === "swap"){ var r = state.route, f = r.from; r.from = r.to; r.to = f; r.feature = null; r.floor = null; r.text = null; state.sel = SPOTS[r.to].b ? SPOTS[r.to].b.id : null; render(); fitRoute(); }
   else if (a === "filter"){ var k = t.getAttribute("data-k"); state.filter = state.filter === k ? null : k; state.zone = null; render(); }
+  else if (a === "wish") tossCoin();
   else if (a === "zone"){ var zk = t.getAttribute("data-k"); state.zone = state.zone === zk ? null : zk; state.filter = null; render(); }
 });
 
@@ -1027,9 +1101,9 @@ function refreshMap(){
     var r = state.route; routeSteps(r);
     var from = SPOTS[r.from], to = SPOTS[r.to], zc2 = spotZone(to), color = zc2 ? zc2.color : "#2E7D32";
     var line = [];
-    if (from.b || from.lm){ var fc = spotPos(from); line.push(P(fc[0], fc[1])); }
+    if (from.b || from.lm){ var fc = doorPos(from); line.push(P(fc[0], fc[1])); }
     r.path.forEach(function(k){ line.push(P(NODES[k].p[0], NODES[k].p[1])); });
-    if (to.b || to.lm){ var tc = spotPos(to); line.push(P(tc[0], tc[1])); }
+    if (to.b || to.lm){ var tc = doorPos(to); line.push(P(tc[0], tc[1])); }
     if (line.length >= 2){
       el("polyline", {points:pts(line), fill:"none", stroke:"#fff", "stroke-width":13, "stroke-linecap":"round", "stroke-linejoin":"round"}, layers.route);
       el("polyline", {"class":"march", points:pts(line), fill:"none", stroke:color, "stroke-width":7.5, "stroke-linecap":"round", "stroke-linejoin":"round", "stroke-dasharray":"14 14"}, layers.route);
@@ -1098,7 +1172,7 @@ function renderQrSheet(){
 }
 var bu = document.getElementById("baseurl");
 bu.value = baseUrl;
-bu.addEventListener("change", function(){ baseUrl = bu.value.trim() || DEFAULT_BASE; try { localStorage.setItem("shu-map-base", baseUrl); } catch (e) {} renderQrSheet(); render(); });
+bu.addEventListener("change", function(){ baseUrl = bu.value.trim() || DEFAULT_BASE; renderQrSheet(); render(); });
 
 /* ===================== STATIC TEXT ===================== */
 function renderStatic(){
