@@ -133,6 +133,47 @@ svg.zoomed .closed-name{opacity:0}
 }
 @keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.2);opacity:0}}
 @keyframes march{to{stroke-dashoffset:-28}}
+/* route type, recommendation */
+.days{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;margin:8px -2px 4px;scroll-snap-type:x mandatory}
+.days button{flex:0 0 auto;scroll-snap-align:start;min-width:56px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 6px;border-radius:12px;border:1px solid var(--line);background:#fff;font:inherit;cursor:pointer;position:relative}
+.days button small{font-size:11px;color:var(--muted)}
+.days button b{font-size:15px}
+.days button i{position:absolute;top:-5px;right:-4px;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:#E11D74;color:#fff;font-style:normal;font-size:11px;font-weight:800;text-align:center;padding:0 4px}
+.days button[aria-pressed="true"]{background:#17211F;border-color:#17211F;color:#fff}
+.days button[aria-pressed="true"] small{color:#D8DEDC}
+.pick{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin:2px 0 6px}
+.pick input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px}
+.ev-day{margin:12px 0 4px;font-size:15px}
+.ev-date{display:block;font-size:11px;font-weight:800;color:#E11D74;white-space:nowrap}
+.ev-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.ev{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 10px;margin:6px 0;border-radius:12px;background:var(--soft)}
+.ev-time b{display:block;font-size:15px;font-weight:900}
+.ev-time small{color:var(--muted);font-size:12px}
+.ev-body{all:unset;cursor:pointer;display:block;min-width:0}
+.ev-body:focus-visible{outline:2px solid #1F5FBF;outline-offset:2px;border-radius:6px}
+.ev-body strong{display:block;line-height:1.35}
+.ev-body small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
+.ev-meta{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.ev-meta i{font-style:normal;font-size:11px;font-weight:800;color:#fff;padding:1px 7px;border-radius:999px}
+.ev-meta em{font-style:normal;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;background:#fff;color:var(--muted);border:1px solid var(--line)}
+.ev-meta em.st-now{background:#E11D74;color:#fff;border-color:#E11D74}
+.ev-now{background:#FDE7F1;box-shadow:inset 3px 0 0 #E11D74}
+.ev-done{opacity:.55}
+.ev .btn{padding:8px 12px}
+.places{margin:4px 0 6px;padding-left:18px}
+.places li{margin:3px 0}
+.lm .pz-hit{transition:fill .2s}
+.lm:hover .pz-hit,.lm:focus-visible .pz-hit{fill:rgba(184,138,46,.18)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin:10px 0 8px;border-radius:12px;background:var(--soft)}
+.seg button{border:0;border-radius:9px;padding:9px 6px;font:inherit;font-weight:800;background:transparent;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:#fff;color:#0E5A70;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.reco{margin:0 0 10px;padding:12px 14px;border-radius:12px;background:#E6F4F7;border:1.5px solid #0E7490}
+.reco-h{font-weight:900;color:#0E5A70;margin-bottom:4px}
+.reco p{margin:0}
+.reco-tips{margin:8px 0 0;padding-left:18px}
+.reco-tips li{margin:2px 0}
+.hint-stairs{margin:0 0 10px;padding:10px 12px;border-radius:10px;background:#FFF1E6;border:1px solid #E36C0A;color:#7A3A0A}
+.access{margin:8px 0;padding:10px 12px;border-radius:10px;background:#E6F4F7;border:1px solid #0E7490;color:#0E4A5C}
 /* wishing fountain — magic edition */
 .wish{position:relative;overflow:hidden;isolation:isolate;margin:12px 0 4px;padding:16px;border-radius:16px;color:#F3EEFF;background:radial-gradient(120% 90% at 50% 0%,#3D2C80 0%,#1C1945 55%,#0D0F26 100%);border:1px solid #3A3470;box-shadow:0 8px 30px rgba(40,20,110,.25)}
 .wish h3{margin:0 0 4px;font-size:17px;font-weight:900;letter-spacing:.06em;background:linear-gradient(90deg,#FFE7A3,#FFFFFF,#B9E8FF,#FFE7A3);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -214,7 +255,7 @@ svg.zoomed .closed-name{opacity:0}
 (function(){
 "use strict";
 var NS = "http://www.w3.org/2000/svg";
-var DEFAULT_BASE = "https://duckduckooo.github.io/shu-map-wayforall/";
+var DEFAULT_BASE = "https://claude.ai/artifact/57vYjHHUX4YEkKSDFRws54";
 var lang = "zh", baseUrl = DEFAULT_BASE;
 try {
   var sl = localStorage.getItem("shu-map-lang"); if (sl === "en" || sl === "zh") lang = sl;
@@ -252,15 +293,20 @@ var BUILDINGS = [
    f:{elev:true, aed:"宿舍管理室室外"},
    note:{zh:"諮商中心：郵局對面樓梯上左邊、翠谷餐廳下方", en:"Counseling Center: up the stairs opposite the post office, on the left, below the Restaurant"},
    floors:[["右棟","宿舍管理室 1F（電梯 2F，室外設AED）；女生宿舍（2F–4F）；翠谷餐廳（電梯 2F）"],["左棟","男生宿舍"],["餐廳下方","諮商中心（團體諮商室、個人諮商室、主任室、辦公區、會議監測驗室）；教官值勤室"]]},
-  {id:"ADM", code:"", short:"行政", shortEn:"Admin", zh:"行政大樓", en:"Administration Building", zone:"z2", mat:"white", parts:[[415,428,38,82,38]], fl:3, node:"n3",
+  {id:"ADM", code:"", short:"行政", shortEn:"Admin", zh:"行政大樓", en:"Administration Building", zone:"z2", mat:"white", parts:[[417,428,26,92,45],[421,424,56,30,45]], fl:5, node:"adm1",
+   entries:[{node:"adm1", fl:"1F", zh:"1F 入口", en:"1F entrance"}, {node:"sa", fl:"學務處層", zh:"學務處入口", en:"Student Affairs entrance"}, {node:"rbase", fl:"路面層", zh:"斜坡下方（郵局、商店）", en:"under the ramp (post office, shops)"}],
+   access:{zh:"從山洞口走進來，會先看到行政大樓的斜坡，可以走上 1F，但坡度較陡。斜坡下方是郵局和商店。無障礙請搭言論廣場旁的電梯：1F 路面；2F 學務處，並通往通識大樓與圖書館電梯；3F 進入行政大樓。學務處也可以從言論廣場走樓梯上去。電梯暫停時，斜坡是另一個選擇，但坡度較陡。", en:"Coming in from the tunnel gate, you first see the Admin Building ramp up to 1F; it is quite steep. The post office and shops are under the ramp. Step-free: use the elevator beside Speech Square. 1F: street. 2F: Student Affairs, plus the way to the General Building and the library elevator. 3F: into the Admin Building. Student Affairs can also be reached by the stairs at Speech Square. If the elevator is out of service, the ramp is another option, though steep."},
    f:{elev:true, ramp:true, gender:"3F"},
-   floors:[["3F","董事會；校長室；秘書室；主秘辦公室；稽核室；會議室；會客室；性別友善廁所"],["2F","教務處；人事室；會計室；廁所"],["1F","總務處；秘書室文書組；研究發展處；廁所"],["B1","郵局；商店；學務處（生輔組、生涯組、軍訓室、學務處本部）"]]},
-  {id:"L", code:"L", zh:"圖書館", en:"Library", zone:"z2", mat:"white", parts:[[468,268,62,62,45]], fl:6, node:"n4",
+   floors:[["3F","董事會；校長室；秘書室；主秘辦公室；稽核室；會議室；會客室；性別友善廁所"],["2F","教務處；人事室；會計室；廁所"],["1F","總務處；秘書室文書組；研究發展處；廁所"],["學務處層","學務處（生輔組、生涯組、軍訓室、學務處本部）"],["路面層","郵局；商店"]]},
+  {id:"L", code:"L", zh:"圖書館", en:"Library", zone:"z2", mat:"white", parts:[[468,268,62,62,45]], fl:6, node:"l3",
+   entries:[{node:"l3", fl:"3F", zh:"3F 入口", en:"3F entrance"}],
+   access:{zh:"圖書館入口在 3F。無障礙：搭言論廣場旁的行政大樓電梯到 2F，沿平台走到圖書館電梯，再搭到 3F。也可以從言論廣場走樓梯上平台。", en:"The library entrance is on 3F. Step-free: take the Admin Building elevator beside Speech Square to 2F, follow the terrace to the library elevator, then ride it to 3F. You can also take the stairs at Speech Square up to the terrace."},
    f:{elev:true, gender:"4F"},
    floors:[["6F","遊戲區；KTV；電影放映區；休息區；漫畫區；咖啡吧檯區；中文書庫第五、六層；廁所"],["5F","資訊檢索區；教師著作陳列區；中西文參考館藏區；密集書庫；統計資料；學位論文；地圖；小冊子；畢業紀念冊；L501教室；L502電腦教室；中文書庫第四層；廁所"],["4F","圖書資訊長辦公室；多媒體欣賞區；舍我講堂；多語言學習資料區；特色館藏區；L401~L403錄音暨剪輯室；L404、L405教室；L406電腦教室；性別友善廁所"],["3F","西文書庫（000-999）；討論室；行政區；日文書庫；中文書庫第一、二層；廁所"],["2F","流通服務台；中西文現期期刊區；教師指定參考書區；線上公用目錄查詢區；新書展示區；展示區；行政區；廁所"],["1F","L101多功能實景棚"]]},
-  {id:"G", code:"G", zh:"通識（綜合）大樓", en:"General Building", zone:"z2", mat:"white", parts:[[528,322,52,86,45]], fl:7, node:"n4",
+  {id:"G", code:"G", zh:"通識（綜合）大樓", en:"General Building", zone:"z2", mat:"white", parts:[[528,322,52,86,45]], fl:7, node:"g2e",
+   access:{zh:"通識大樓入口在言論廣場上一層的平台，從廣場要走樓梯上去。無障礙：搭廣場旁的行政大樓電梯到 2F，沿平台進入。", en:"The entrance is on the terrace one level above Speech Square, up a flight of stairs. Step-free: take the Admin Building elevator beside the square to 2F and follow the terrace."},
    f:{elev:true, acc:"1F", care:"1F"},
-   floors:[["7F","G701教室；G702教室"],["6F","G601電腦教室；G602電腦教室；廁所"],["5F","G501教室；G502教室；G503教室；廁所"],["4F","G401教室；G402教室；G403教室；廁所"],["3F","G301教室；G302教室；G303教室；廁所"],["2F","G201教學發展中心辦公室；G202A教學發展中心放映室；G202B教學發展中心器材室；G203教學發展中心器材室；廁所"],["1F","G101檔案室；G102教學發展中心辦公及器材室；無障礙廁所（附設照護床）；廁所"],["言論廣場","English Corner；GB101圓桌影音播客直播間；Japanese Corner"]]},
+   floors:[["7F","G701教室；G702教室"],["6F","G601電腦教室；G602電腦教室；廁所"],["5F","G501教室；G502教室；G503教室；廁所"],["4F","G401教室；G402教室；G403教室；廁所"],["3F","G301教室；G302教室；G303教室；廁所"],["2F","G201教學發展中心辦公室；G202A教學發展中心放映室；G202B教學發展中心器材室；G203教學發展中心器材室；廁所"],["1F","G101檔案室；G102教學發展中心辦公及器材室；無障礙廁所（附設照護床）；廁所"]]},
   {id:"B", code:"B", zh:"廣電大樓 B", en:"Radio & TV Center B", zone:"z3", mat:"construction", parts:[[642,402,72,38,18]], fl:4, node:"n5", f:{}, closed:true, floors:[]},
   {id:"T", code:"T", zh:"廣電大樓 T", en:"Radio & TV Center T", zone:"z3", mat:"construction", parts:[[676,458,36,86,12]], fl:4, node:"n5", f:{}, closed:true, floors:[]},
   {id:"R", code:"R", zh:"舍我樓教學大樓", en:"She-Wo Building", zone:"z4", mat:"brick", parts:[[705,290,112,40,-22]], fl:10, node:"n6", door:[784,243],
@@ -311,6 +357,40 @@ var NODES = {
   n13:{p:[1150,498], zh:"管院大樓前", en:"Management Building"},
   n15:{p:[1080,525], zh:"全媒體大樓正門", en:"Omni-Media Building entrance"}
 };
+/* upper-level nodes: z = levels above the street (1 = 2F, 2 = 3F), fl = floor label */
+/* positions follow the campus plan: the plaza is a half-disc on the General Building's SE face,
+   the elevator tower stands at its SW end, the terrace wraps round the General Building to the library and Admin */
+NODES.rb    = {p:[455,496], fl:"路面層", link:true, quiet:true, zh:"行政大樓斜坡口", en:"Admin ramp turn-off"};
+NODES.rbase = {p:[419,470], fl:"路面層", zh:"行政大樓斜坡下（郵局、商店）", en:"Foot of the Admin ramp (post office, shops)"};
+NODES.adm1  = {p:[455,424], z:2, fl:"1F", zh:"行政大樓 1F 入口", en:"Admin Building 1F entrance"};
+NODES.ea    = {p:[474,401], fl:"1F", zh:"行政大樓電梯", en:"Admin Building elevator"};
+NODES.ea2   = {p:[474,401], z:1, fl:"2F", zh:"行政大樓電梯 2F", en:"Admin elevator, 2F"};
+NODES.ea3   = {p:[474,401], z:2, fl:"3F", zh:"行政大樓電梯 3F", en:"Admin elevator, 3F"};
+NODES.sa    = {p:[463,396], z:1, fl:"學務處層", zh:"學務處入口", en:"Student Affairs entrance"};
+NODES.tj    = {p:[497,381], z:1, fl:"2F", link:true, zh:"2F 平台", en:"2F terrace"};
+NODES.lw    = {p:[469,339], z:1, fl:"2F", link:true, quiet:true, zh:"2F 平台", en:"2F terrace"};
+NODES.sc    = {p:[520,374], z:1, fl:"2F", link:true, quiet:true, zh:"2F 平台", en:"2F terrace"};
+NODES.le    = {p:[479,305], z:1, fl:"2F", zh:"圖書館電梯", en:"Library elevator"};
+NODES.l3    = {p:[479,305], z:2, fl:"3F", zh:"圖書館 3F 入口", en:"Library 3F entrance"};
+NODES.g2e   = {p:[547,343], z:1, fl:"2F", zh:"通識大樓入口", en:"General Building entrance"};
+NODES.st    = {p:[578,312], z:1, fl:"2F", zh:"2F 平台", en:"the 2F terrace"};
+NODES.ps    = {p:[590,323], fl:"1F", link:true, quiet:true, zh:"言論廣場", en:"Speech Square"};
+var EL_ADM = {zh:"行政大樓電梯（言論廣場旁）", en:"the Admin Building elevator (beside Speech Square)"}, EL_LIB = {zh:"圖書館電梯", en:"the library elevator"};
+/* the 2F terrace in front of the General Building: elevator → Student Affairs / General Building / library elevator / plaza stairs */
+var TERRACE = [[577,309],[516,371],[479,334],[487,325],[481,299],[463,316],[457,336],[486,364],[451,394],[461,415],[500,399],[513,393],[519,374],[580,313]];
+/* the ramp runs parallel to the Admin Building's SE face, rising from the SW end (seen first from the tunnel gate) to 1F */
+var RAMP = {bot:[421,468], top:[453,436], w:6, road:[0.707, 0.707]};
+var LINKS = [
+  ["n2","rb",{}], ["rb","n3",{}], ["rb","rbase",{}],
+  ["rbase","adm1",{steep:{zh:"行政大樓前的斜坡", en:"the Admin Building ramp"}}],
+  ["n3","ea",{}], ["n4","ea",{}],
+  ["ea","ea2",{elev:EL_ADM}], ["ea2","ea3",{elev:EL_ADM}], ["ea","ea3",{elev:EL_ADM}],
+  ["ea3","adm1",{}],
+  ["ea2","tj",{}], ["tj","sa",{}], ["tj","lw",{}], ["lw","le",{}], ["tj","sc",{}], ["sc","g2e",{}], ["g2e","st",{}],
+  ["le","l3",{elev:EL_LIB}],
+  ["n4","ps",{}],
+  ["ps","st",{stairs:{zh:"言論廣場的樓梯", en:"the stairs at Speech Square"}}]
+];
 var EDGES = [["g1","n1"],["n1","n2"],["n2","n3"],["n3","n4"],["n4","n5"],["n5","n6"],["n6","n7"],["n7","g2"],["n7","n8"],["n8","n9"],["n9","n10"],["n10","g4"],["n10","n11"],["n11","n14"],["n14","g3"],["g4","n12"],["n12","n13"],["n13","n15"]];
 var GATES = [
   {key:"gate1", node:"g1", n:1, zh:"前校門（山洞口）", en:"Main Gate"},
@@ -323,17 +403,29 @@ var ISLANDS = [
   [[995,500],[1250,455],[1265,570],[1005,625]]
 ];
 var PLAZAS = [
-  {type:"disc", c:[592,362], r:22, zh:"言論廣場", en:"Speech Square"},
+  {type:"semi", c:[550,345], r:38, dir:45, zh:"言論廣場", en:"Speech Square", canopy:true},
   {type:"rect", c:[850,215], w:60, h:40, rot:-15, zh:"學校廣場", en:"Campus Square"},
   {type:"disc", c:[905,248], r:15, zh:"八風舞台", en:"Ba-Fong Stage", stage:true}
 ];
 
 var LANDMARKS = [
+  {key:"spot-speech", id:"speech", zh:"言論廣場", en:"Speech Square", pos:[562,357], node:"n4", zone:"z2", kind:"plaza", plaza:0,
+   desc:{zh:"通識大樓正前方、有綠色半圓雨棚的廣場。廣場上一層是平台，通往通識大樓、學務處與圖書館電梯，從廣場要走樓梯上去；需要無障礙，請搭廣場旁的橙紅色電梯到 2F。", en:"The square with the green semicircular canopy, right in front of the General Building. One level up is a terrace leading to the General Building, Student Affairs and the library elevator, reached by stairs; for step-free access, take the orange-red elevator beside the square to 2F."},
+   places:[["English Corner","English Corner"],["GB101 圓桌影音播客直播間","GB101 Round-table Podcast Studio"],["Japanese Corner","Japanese Corner"]]},
+  {key:"spot-square", id:"square", zh:"學校廣場", en:"Campus Square", pos:[850,215], node:"n7", zone:"z4", kind:"plaza", plaza:1,
+   desc:{zh:"後校門進來的廣場，社團擺攤與活動常在這裡。", en:"The square inside the Back Gate, where clubs often set up booths and events."}},
+  {key:"spot-stage", id:"stage", zh:"八風舞台", en:"Ba-Fong Stage", pos:[905,248], node:"n8", zone:"z4", kind:"plaza", plaza:2,
+   desc:{zh:"學校廣場旁的戶外舞台，表演與演唱會常在這裡。", en:"The outdoor stage beside Campus Square, used for shows and concerts."}},
+  {key:"spot-elev-adm", id:"elevadm", zh:"行政大樓電梯", en:"Admin Building Elevator", pos:[474,401], node:"ea", zone:"z2", kind:"elevator", tower:"brick",
+   desc:{zh:"言論廣場旁的橙紅色無障礙電梯，屬於行政大樓。", en:"The orange-red accessible elevator beside Speech Square, part of the Admin Building."},
+   places:[["1F：路面（言論廣場、郵局、商店方向）","1F · street level (Speech Square, post office, shops)"],["2F：學務處；往通識大樓、圖書館電梯","2F · Student Affairs; to the General Building and the library elevator"],["3F：進入行政大樓","3F · into the Admin Building"]]},
+  {key:"spot-elev-lib", id:"elevlib", zh:"圖書館電梯", en:"Library Elevator", pos:[479,305], node:"le", zone:"z2", kind:"elevator", label:{zh:"圖書館電梯", en:"Library elev."},
+   desc:{zh:"在 2F 平台上，從行政大樓電梯 2F 或言論廣場的樓梯上來。搭到 3F 就是圖書館入口。", en:"On the 2F terrace, reached from the Admin elevator's 2F or the stairs at Speech Square. Ride to 3F for the library entrance."}},
   {key:"spot-fountain", id:"fountain", zh:"魔法噴水池", en:"Magic Fountain", pos:[1078,578], node:"n15", zone:"z6", kind:"fountain",
    desc:{zh:"全媒體大樓正門前的噴水池，中央是金屬環繞的星球雕塑。", en:"The fountain at the Omni-Media Building's main entrance, with a ringed globe sculpture in the middle."}},
   {key:"spot-cafe", id:"cafe", zh:"學生餐廳（學餐）", en:"Student Cafeteria", pos:[792,236], node:"n6", zone:"z4", kind:"cafe", label:{zh:"學餐・R/S 電梯入口", en:"Cafeteria · R/S entrance"},
    desc:{zh:"學生餐廳在舍我樓研究大樓 S 1F（S101）。旁邊就是 R、S 兩棟共用的電梯入口，去 R 或 S 都從這裡進出。", en:"The student cafeteria is on S 1F (S101). The shared elevator entrance for the R and S buildings is right next to it."}},
-  {key:"spot-statue", id:"statue", zh:"舍我爺爺", en:"Grandpa She-wo statue", pos:[618,318], node:"n4", zone:"z2", kind:"statue",
+  {key:"spot-statue", id:"statue", zh:"舍我爺爺", en:"Grandpa She-wo statue", pos:[606,322], node:"n4", zone:"z2", kind:"statue",
    desc:{zh:"創辦人成舍我先生的銅像，坐在「世新大學」木牆前，就在言論廣場旁。", en:"Bronze statue of founder Cheng She-wo, seated before the wooden \u201cShih Hsin University\u201d wall beside Speech Square."}}
 ];
 /* spots: every place that can be a start, a destination or a QR */
@@ -347,7 +439,7 @@ var CEN = [780, 420], PHI = -85 * Math.PI / 180, CO = Math.cos(PHI), SI = Math.s
 function rot(x, y){ var dx = x - CEN[0], dy = y - CEN[1]; return [dx*CO - dy*SI, dx*SI + dy*CO]; }
 function PP(ab, z){ return [(ab[0] - ab[1]) * 0.866, (ab[0] + ab[1]) * 0.5 - (z || 0)]; }
 function P(x, y, z){ return PP(rot(x, y), z); }
-var FLOOR = 6.5, CLIFF = 28;
+var FLOOR = 6.5, CLIFF = 28, LV = FLOOR;  /* LV: height of one level for walkways and elevator stops */
 
 function el(tag, attrs, parent){ var e = document.createElementNS(NS, tag); for (var k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
 function pts(a){ return a.map(function(p){ return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" "); }
@@ -357,6 +449,8 @@ function shade(hex, f){
   return "#" + ((1 << 24) + (c(r) << 16) + (c(g) << 8) + c(b)).toString(16).slice(1);
 }
 function rectCorners(p){ var r = p[4]*Math.PI/180, c = Math.cos(r), s = Math.sin(r); return [[-p[2]/2,-p[3]/2],[p[2]/2,-p[3]/2],[p[2]/2,p[3]/2],[-p[2]/2,p[3]/2]].map(function(q){ return [p[0] + q[0]*c - q[1]*s, p[1] + q[0]*s + q[1]*c]; }); }
+function semiPts(c, r, deg, n){ var a = [], d = deg*Math.PI/180; for (var i = 0; i <= n; i++){ var t = d - Math.PI/2 + i/n*Math.PI; a.push([c[0] + Math.cos(t)*r, c[1] + Math.sin(t)*r]); } return a; }
+function plazaPoly(pz, grow){ grow = grow || 0; return pz.type === "semi" ? semiPts(pz.c, pz.r + grow, pz.dir, 24) : pz.type === "disc" ? circlePts(pz.c, pz.r + grow, 32) : rectCorners([pz.c[0], pz.c[1], pz.w + grow*2, pz.h + grow*2, pz.rot]); }
 function circlePts(c, r, n){ var a = []; for (var i = 0; i < n; i++){ var t = i/n*Math.PI*2; a.push([c[0] + Math.cos(t)*r, c[1] + Math.sin(t)*r]); } return a; }
 function signedArea(R){ var s = 0; for (var i = 0; i < R.length; i++){ var p = R[i], q = R[(i+1) % R.length]; s += p[0]*q[1] - q[0]*p[1]; } return s/2; }
 function inPoly(pt, poly){ var x = pt[0], y = pt[1], ins = false; for (var i = 0, j = poly.length-1; i < poly.length; j = i++){ var xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1]; if (((yi > y) !== (yj > y)) && (x < (xj-xi)*(y-yi)/(yj-yi) + xi)) ins = !ins; } return ins; }
@@ -402,16 +496,25 @@ var MATS = {
 };
 
 /* ===================== GRAPH ===================== */
-var ADJ = {};
-EDGES.forEach(function(e){ var a = NODES[e[0]].p, b = NODES[e[1]].p, d = Math.hypot(a[0]-b[0], a[1]-b[1]); (ADJ[e[0]] = ADJ[e[0]] || []).push([e[1], d]); (ADJ[e[1]] = ADJ[e[1]] || []).push([e[0], d]); });
-function dijkstra(src){
+var ADJ = {}, EATTR = {};
+function addEdge(x, y, at){
+  var a = NODES[x].p, b = NODES[y].p, d = Math.hypot(a[0]-b[0], a[1]-b[1]);
+  if (at.elev) d += 25;            /* waiting for and riding an elevator */
+  if (at.stairs) d += 20;          /* one flight of stairs */
+  if (at.steep) d += 15;           /* steep ramp */
+  (ADJ[x] = ADJ[x] || []).push([y, d, at]); (ADJ[y] = ADJ[y] || []).push([x, d, at]);
+  EATTR[x + "|" + y] = EATTR[y + "|" + x] = at;
+}
+EDGES.forEach(function(e){ addEdge(e[0], e[1], {}); });
+LINKS.forEach(function(e){ addEdge(e[0], e[1], e[2]); });
+function dijkstra(src, stepFree){
   var dist = {}, prev = {}, done = {};
   Object.keys(NODES).forEach(function(k){ dist[k] = Infinity; }); dist[src] = 0;
   for (;;){
     var u = null;
     Object.keys(dist).forEach(function(k){ if (!done[k] && (u === null || dist[k] < dist[u])) u = k; });
     if (u === null || dist[u] === Infinity) break; done[u] = true;
-    (ADJ[u] || []).forEach(function(nb){ var nd = dist[u] + nb[1]; if (nd < dist[nb[0]]){ dist[nb[0]] = nd; prev[nb[0]] = u; } });
+    (ADJ[u] || []).forEach(function(nb){ if (stepFree && (nb[2].stairs || nb[2].steep)) return; var nd = dist[u] + nb[1]; if (nd < dist[nb[0]]){ dist[nb[0]] = nd; prev[nb[0]] = u; } });
   }
   return {dist:dist, prev:prev};
 }
@@ -477,14 +580,15 @@ function build(){
 
   /* plazas, stage, sports field */
   PLAZAS.forEach(function(pz){
-    var poly = pz.type === "disc" ? circlePts(pz.c, pz.r, 32) : rectCorners([pz.c[0], pz.c[1], pz.w, pz.h, pz.rot]);
+    var poly = plazaPoly(pz);
     if (pz.stage){
       var fc = faces(poly);
       fc.list.forEach(function(f){ el("polygon", {points:pts(fq(f, 0, 1, 0, 4)), fill:"#B9AE98"}, layers.ground); });
       el("polygon", {points:pts(fc.R.map(function(p){ return PP(p, 4); })), fill:"#D8CDB5", stroke:"#B3A68C", "stroke-width":1}, layers.ground);
     } else {
-      el("polygon", {points:pts(poly.map(function(p){ return P(p[0], p[1]); })), fill:"#EEE7D7", stroke:"#C9BEA6", "stroke-width":1.2}, layers.ground);
-      var inner = pz.type === "disc" ? circlePts(pz.c, pz.r*0.55, 24) : rectCorners([pz.c[0], pz.c[1], pz.w*0.6, pz.h*0.5, pz.rot]);
+      el("polygon", {points:pts(poly.map(function(p){ return P(p[0], p[1]); })), fill:pz.canopy ? "#D9A48E" : "#EEE7D7", stroke:pz.canopy ? "#B9806A" : "#C9BEA6", "stroke-width":1.2}, layers.ground);
+      if (pz.canopy) [0.82, 0.64].forEach(function(f){ el("polygon", {points:pts(semiPts(pz.c, pz.r*f, pz.dir, 20).map(function(p){ return P(p[0], p[1]); })), fill:"none", stroke:"#C38C76", "stroke-width":1}, layers.ground); });
+      var inner = pz.type === "semi" ? semiPts(pz.c, pz.r*0.45, pz.dir, 16) : pz.type === "disc" ? circlePts(pz.c, pz.r*0.55, 24) : rectCorners([pz.c[0], pz.c[1], pz.w*0.6, pz.h*0.5, pz.rot]);
       el("polygon", {points:pts(inner.map(function(p){ return P(p[0], p[1]); })), fill:"none", stroke:"#D5C9AF", "stroke-width":1.2}, layers.ground);
     }
   });
@@ -505,6 +609,38 @@ function build(){
     EDGES.forEach(function(e){ var a = P(NODES[e[0]].p[0], NODES[e[0]].p[1]), b = P(NODES[e[1]].p[0], NODES[e[1]].p[1]); el("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:st[0], "stroke-width":st[1], "stroke-linecap":"round"}, layers.roads); });
   });
   EDGES.forEach(function(e){ var a = P(NODES[e[0]].p[0], NODES[e[0]].p[1]), b = P(NODES[e[1]].p[0], NODES[e[1]].p[1]); el("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:"#D6D0C2", "stroke-width":1.2, "stroke-dasharray":"3 6"}, layers.roads); });
+  /* 2F terrace in front of the General Building: brick walls, paved top */
+  (function(){
+    var fc = faces(TERRACE), g = el("g", {"aria-hidden":"true"}, layers.roads);
+    fc.list.forEach(function(f){
+      el("polygon", {points:pts(fq(f, 0, 1, 0, LV)), fill:f.right ? "#B5664A" : "#C9785A", stroke:"#8E4A33", "stroke-width":0.6}, g);
+      var a = fpt(f, 0, LV*0.5), b = fpt(f, 1, LV*0.5); el("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:"#A85C42", "stroke-width":0.8}, g);
+    });
+    el("polygon", {points:pts(fc.R.map(function(p){ return PP(p, LV); })), fill:"#E7C9B6", stroke:"#B88A73", "stroke-width":1}, g);
+    /* railing along the open edges */
+    el("polyline", {points:pts(fc.R.map(function(p){ return PP(p, LV + 3); }).concat([PP(fc.R[0], LV + 3)])), fill:"none", stroke:"#F7F3EE", "stroke-width":1.1, opacity:0.9}, g);
+  })();
+
+  /* links: stairs, the bridge to the Admin 1F, the short path to the elevator */
+  LINKS.forEach(function(e){
+    var A = NODES[e[0]], B = NODES[e[1]], at = e[2];
+    if (at.elev || at.steep) return;
+    if (lvl(e[0]) === 1 && lvl(e[1]) === 1) return;          /* on the terrace */
+    var key = e[0] + "|" + e[1];
+    if (key === "n2|rb" || key === "rb|n3" || key === "n3|ea" || key === "n4|ps") return;   /* these lie on the road or the plaza */
+    var a = P(A.p[0], A.p[1], lvl(e[0])*LV), b = P(B.p[0], B.p[1], lvl(e[1])*LV);
+    if (at.stairs){
+      var dx = B.p[0]-A.p[0], dy = B.p[1]-A.p[1], L = Math.hypot(dx, dy), nx = -dy/L*5, ny = dx/L*5, z0 = lvl(e[0])*LV, z1 = lvl(e[1])*LV, g = el("g", {"aria-hidden":"true"}, layers.roads);
+      el("polygon", {points:pts([P(A.p[0]+nx, A.p[1]+ny, z0), P(B.p[0]+nx, B.p[1]+ny, z1), P(B.p[0]-nx, B.p[1]-ny, z1), P(A.p[0]-nx, A.p[1]-ny, z0)]), fill:"#D8CDB5", stroke:"#9C8F75", "stroke-width":0.8}, g);
+      for (var k = 1; k < 7; k++){ var u = k/7, x = A.p[0] + dx*u, y = A.p[1] + dy*u, z = z0 + (z1-z0)*u, p1 = P(x+nx, y+ny, z), p2 = P(x-nx, y-ny, z); el("line", {x1:p1[0], y1:p1[1], x2:p2[0], y2:p2[1], stroke:"#9C8F75", "stroke-width":0.9}, g); }
+      return;
+    }
+    if (lvl(e[0]) || lvl(e[1])){
+      [0.3, 0.7].forEach(function(u){ var x = A.p[0] + (B.p[0]-A.p[0])*u, y = A.p[1] + (B.p[1]-A.p[1])*u, z = (lvl(e[0]) + (lvl(e[1])-lvl(e[0]))*u)*LV, t = P(x, y, z), g0 = P(x, y); el("line", {x1:t[0], y1:t[1], x2:g0[0], y2:g0[1], stroke:"#A3AAA4", "stroke-width":2}, layers.roads); });
+    }
+    el("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:"#A3AAA4", "stroke-width":9, "stroke-linecap":"round"}, layers.roads);
+    el("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:"#F4F1EA", "stroke-width":6, "stroke-linecap":"round"}, layers.roads);
+  });
   var bA = P(gA[0], gA[1]), bB = P(gB[0], gB[1]);
   [-7, 7].forEach(function(off){ el("line", {x1:bA[0] + off, y1:bA[1] - 3, x2:bB[0] + off, y2:bB[1] - 3, stroke:"#6F7672", "stroke-width":1.5}, layers.roads); });
 
@@ -519,6 +655,7 @@ function build(){
     PLAZAS.forEach(function(pz){ if (Math.hypot(tp[0]-pz.c[0], tp[1]-pz.c[1]) < 40) ok = false; });
     if (Math.hypot((tp[0]-1175)/1.9, tp[1]-132) < 58) ok = false;
     if (Math.hypot(tp[0]-285, tp[1]-752) < 40) ok = false;
+    if (inPoly(tp, TERRACE) || segDist(tp, RAMP.top, RAMP.bot) < 16) ok = false;
     LANDMARKS.forEach(function(l){ if (Math.hypot(tp[0]-l.pos[0], tp[1]-l.pos[1]) < 34) ok = false; });
     trees.forEach(function(q){ if (Math.hypot(tp[0]-q[0], tp[1]-q[1]) < 17) ok = false; });
     if (ok) trees.push([tp[0], tp[1], rnd(), rnd()]);
@@ -539,11 +676,13 @@ function build(){
   BUILDINGS.forEach(function(b){ b.parts.forEach(function(p, idx){ var R = rot(p[0], p[1]); items.push({kind:"b", b:b, part:p, idx:idx, depth:R[0] + R[1]}); }); });
   trees.forEach(function(tp){ var R = rot(tp[0], tp[1]); items.push({kind:"t", p:tp, depth:R[0] + R[1]}); });
   var gateR = rot(285, 752); items.push({kind:"arch", depth:gateR[0] + gateR[1]});
+  var rampR = rot((RAMP.top[0] + RAMP.bot[0])/2, (RAMP.top[1] + RAMP.bot[1])/2); items.push({kind:"ramp", depth:rampR[0] + rampR[1]});
   LANDMARKS.forEach(function(l){ var R = rot(l.pos[0], l.pos[1]); items.push({kind:"lm", l:l, depth:R[0] + R[1]}); });
   items.sort(function(a, b){ return a.depth - b.depth; });
   items.forEach(function(it){
     if (it.kind === "t") return drawTree(it.p);
     if (it.kind === "arch") return drawArch();
+    if (it.kind === "ramp") return drawRamp();
     if (it.kind === "lm") return drawLandmark(it.l);
     drawBuildingPart(it.b, it.part, it.idx);
   });
@@ -562,12 +701,14 @@ function build(){
   });
 
   /* ground labels */
-  PLAZAS.forEach(function(pz){ var s = P(pz.c[0], pz.c[1], pz.stage ? 4 : 0); el("text", {x:s[0], y:s[1]+4, "text-anchor":"middle", "font-size":11, "font-weight":700, fill:"#6B5E45", "aria-hidden":"true"}, layers.labels).textContent = T(pz); });
   var fs = P(1175, 132); el("text", {x:fs[0], y:fs[1]+4, "text-anchor":"middle", "font-size":12, "font-weight":900, fill:"#2F5E2C", "aria-hidden":"true"}, layers.labels).textContent = lang === "en" ? "Sports Field" : "操場";
 
   /* landmark labels */
   LANDMARKS.forEach(function(l){
-    var s = P(l.pos[0], l.pos[1], l.kind === "fountain" ? 34 : l.kind === "cafe" ? 18 : 26), txt = (l.kind === "fountain" ? "⛲ " : "◎ ") + (l.label ? T(l.label) : T(l)), w = textW(txt, 12) + 16;
+    if (l.kind === "elevator") return;   /* the shaft carries its own ⇅ sign */
+    var lp0 = l.pos;
+    if (l.kind === "plaza" && PLAZAS[l.plaza].canopy){ var pzc = PLAZAS[l.plaza], ga = pzc.dir*Math.PI/180; lp0 = [pzc.c[0] + Math.cos(ga)*pzc.r*1.45, pzc.c[1] + Math.sin(ga)*pzc.r*1.45]; }
+    var s = P(lp0[0], lp0[1], l.kind === "fountain" ? 34 : l.kind === "cafe" ? 18 : l.kind === "plaza" ? (PLAZAS[l.plaza].stage ? 16 : 12) : l.kind === "elevator" ? 50 : 26), txt = (l.kind === "fountain" ? "⛲ " : l.kind === "elevator" ? "⇅ " : "◎ ") + (l.label ? T(l.label) : T(l)), w = textW(txt, 12) + 16;
     var g = el("g", {"class":"lbl lm-lbl", "data-id":l.id, "aria-hidden":"true"}, layers.labels);
     el("rect", {x:s[0]-w/2, y:s[1]-20, width:w, height:21, rx:10.5, fill:"#FFF8E6", stroke:"#B88A2E", "stroke-width":1.4}, g);
     el("text", {x:s[0], y:s[1]-5.5, "text-anchor":"middle", "font-size":12, "font-weight":900, fill:"#6B4A10"}, g).textContent = txt;
@@ -607,6 +748,32 @@ function drawTree(tp){
   }
 }
 
+/* the steep ramp up to the Admin 1F, with the post office and shops underneath */
+function drawRamp(){
+  var T0 = RAMP.top, B0 = RAMP.bot, dx = T0[0]-B0[0], dy = T0[1]-B0[1], L = Math.hypot(dx, dy), nx = -dy/L*RAMP.w, ny = dx/L*RAMP.w, H = 2*LV;
+  var g = el("g", {"aria-hidden":"true"}, layers.objects);
+  [-1, 1].forEach(function(sd){
+    var bx = B0[0] + nx*sd, by = B0[1] + ny*sd, tx = T0[0] + nx*sd, ty = T0[1] + ny*sd;
+    el("polygon", {points:pts([P(bx, by, 0), P(tx, ty, 0), P(tx, ty, H)]), fill:(nx*RAMP.road[0] + ny*RAMP.road[1])*sd >= 0 ? "#C9785A" : "#B5664A", stroke:"#8E4A33", "stroke-width":0.6}, g);
+  });
+  /* shopfronts on the face toward the road */
+  var signs = [], sd = (nx*RAMP.road[0] + ny*RAMP.road[1]) >= 0 ? 1 : -1, shops = [[0.04, "#2E7D32", lang === "en" ? "Post" : "郵局"], [0.5, "#E36C0A", lang === "en" ? "Shop" : "商店"]];
+  shops.forEach(function(sh){
+    var u0 = sh[0], u1 = sh[0] + 0.3, h0 = 1.5, h1 = Math.min(H*(1 - u1) , 9);
+    var p = function(u, z){ return P(T0[0] + nx*sd + (B0[0]-T0[0])*u, T0[1] + ny*sd + (B0[1]-T0[1])*u, z); };
+    el("polygon", {points:pts([p(u0, 0), p(u1, 0), p(u1, h1), p(u0, h1)]), fill:"#F4EBDD", stroke:"#8E4A33", "stroke-width":0.5}, g);
+    el("polygon", {points:pts([p(u0 + 0.03, 0), p(u1 - 0.03, 0), p(u1 - 0.03, h1 - h0), p(u0 + 0.03, h1 - h0)]), fill:"#7FA9BE"}, g);
+    el("polygon", {points:pts([p(u0, h1 - h0), p(u1, h1 - h0), p(u1, h1), p(u0, h1)]), fill:sh[1]}, g);
+    signs.push([p((u0 + u1)/2, -2), sh]);
+  });
+  /* sloped deck and railings */
+  var d1 = P(B0[0]+nx, B0[1]+ny, 0), d2 = P(T0[0]+nx, T0[1]+ny, H), d3 = P(T0[0]-nx, T0[1]-ny, H), d4 = P(B0[0]-nx, B0[1]-ny, 0);
+  el("polygon", {points:pts([d1, d2, d3, d4]), fill:"#E2D7C4", stroke:"#9C8F75", "stroke-width":0.8}, g);
+  for (var k = 1; k < 9; k++){ var u = k/9, a = P(B0[0]+nx + dx*u, B0[1]+ny + dy*u, H*u), b = P(B0[0]-nx + dx*u, B0[1]-ny + dy*u, H*u); el("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:"#CFC3AC", "stroke-width":0.7}, g); }
+  [-1, 1].forEach(function(sd2){ var a = P(B0[0]+nx*sd2, B0[1]+ny*sd2, 3), b = P(T0[0]+nx*sd2, T0[1]+ny*sd2, H + 3); el("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:"#F7F3EE", "stroke-width":1.2}, g); });
+  /* shop signs sit in front, on the pavement, so the deck never hides them */
+  signs.forEach(function(sg){ var c = sg[0], w = textW(sg[1][2], 7) + 6; el("rect", {x:c[0] - w/2, y:c[1] - 1, width:w, height:9, rx:2, fill:sg[1][1], stroke:"#fff", "stroke-width":0.6}, g); el("text", {x:c[0], y:c[1] + 6.3, "text-anchor":"middle", "font-size":7, "font-weight":900, fill:"#fff"}, g).textContent = sg[1][2]; });
+}
 function drawArch(){
   var poly = rectCorners([285, 752, 52, 18, 32]), fc = faces(poly), H = 15;
   var g = el("g", {"aria-hidden":"true"}, layers.objects);
@@ -626,7 +793,40 @@ function drawArch(){
 function drawLandmark(l){
   var g = el("g", {"class":"bld lm", "data-id":l.id, tabindex:0, role:"button", "aria-label":T(l)}, layers.objects);
   var c = l.pos;
-  if (l.kind === "fountain"){
+  if (l.kind === "plaza"){
+    /* the plaza itself is drawn on the ground; this is a clickable cover */
+    var pz = PLAZAS[l.plaza], poly = plazaPoly(pz, 4);
+    el("polygon", {"class":"pz-hit", points:pts(poly.map(function(p){ return P(p[0], p[1], pz.stage ? 4 : 0); })), fill:"rgba(255,255,255,0.01)", stroke:"none"}, g);
+    if (pz.canopy){
+      /* green semicircular canopy on the side facing the General Building, with posts and two café umbrellas */
+      var ang = pz.dir*Math.PI/180, R1 = pz.r*0.98, R0 = pz.r*0.72, Hc = 11, arc = function(R, z){ var a = []; for (var i = 0; i <= 18; i++){ var t = ang - Math.PI*0.46 + i/18*Math.PI*0.92; a.push(P(pz.c[0] + Math.cos(t)*R, pz.c[1] + Math.sin(t)*R, z)); } return a; };
+      arc(R0, 0).forEach(function(q, i){ if (i % 3) return; el("line", {x1:q[0], y1:q[1], x2:q[0], y2:q[1] - Hc + 1, stroke:"#5E6B66", "stroke-width":1.1}, g); });
+      var outerTop = arc(R1, Hc), outerLow = arc(R1, Hc - 3.5), innerTop = arc(R0, Hc + 1.5);
+      el("polygon", {points:pts(outerTop.concat(innerTop.slice().reverse())), fill:"#2F7A55", stroke:"#1F5A3D", "stroke-width":0.8}, g);
+      el("polygon", {points:pts(outerTop.concat(outerLow.slice().reverse())), fill:"#22603F"}, g);
+    }
+  } else if (l.kind === "elevator"){
+    /* glass shaft: from its lowest stop to one level above its highest stop */
+    var brick = l.tower === "brick", lo = l.id === "elevlib" ? 1 : 0, hi = brick ? 4.6 : 3, sq = rectCorners([c[0], c[1], brick ? 11 : 9, brick ? 11 : 9, 38]), sf = faces(sq);
+    sf.list.forEach(function(f){
+      if (brick){
+        /* orange-red brick tower with tall glass panels, like the real one beside Speech Square */
+        el("polygon", {points:pts(fq(f, 0, 1, lo*LV, hi*LV)), fill:f.right ? "#C8613E" : "#DE7A55", stroke:"#93432A", "stroke-width":0.8}, g);
+        for (var lv2 = 0; lv2 < 4; lv2++) el("polygon", {points:pts(fq(f, 0.22, 0.78, lv2*LV + 2, lv2*LV + LV - 1.5)), fill:f.right ? "#5E9FB0" : "#86C2D1", stroke:"#3E6F7D", "stroke-width":0.5}, g);
+      } else {
+        el("polygon", {points:pts(fq(f, 0, 1, lo*LV, hi*LV)), fill:f.right ? "#7FB6C7" : "#A9D6E3", stroke:"#3E7F93", "stroke-width":0.8, opacity:0.95}, g);
+      }
+    });
+    if (brick){
+      var apex = P(c[0], c[1], hi*LV + 7);
+      sf.list.forEach(function(f){ var a = fpt(f, 0, hi*LV), b = fpt(f, 1, hi*LV); el("polygon", {points:pts([a, b, apex]), fill:f.right ? "#B23A2A" : "#D24A35", stroke:"#8A2A1E", "stroke-width":0.6}, g); });
+    } else el("polygon", {points:pts(sf.R.map(function(p){ return PP(p, hi*LV); })), fill:"#3E7F93"}, g);
+    if (!brick){
+    var tp = P(c[0], c[1], hi*LV + 9);
+    el("rect", {x:tp[0]-8, y:tp[1]-8, width:16, height:16, rx:3.5, fill:"#0E7490"}, g);
+    el("path", {d:"M" + (tp[0]-3.5) + " " + (tp[1]-1) + " l3.5 -4.5 l3.5 4.5 z M" + (tp[0]-3.5) + " " + (tp[1]+1.5) + " l3.5 4.5 l3.5 -4.5 z", fill:"#fff"}, g);
+    }
+  } else if (l.kind === "fountain"){
     /* paved forecourt, dark basin, water, ringed globe */
     el("polygon", {points:pts(circlePts(c, 20, 36).map(function(p){ return P(p[0], p[1]); })), fill:"#ECEAE4", stroke:"#C9C4B8", "stroke-width":1}, g);
     el("polygon", {points:pts(circlePts(c, 16, 36).map(function(p){ return P(p[0], p[1]); })), fill:"none", stroke:"#D5D0C4", "stroke-width":0.8}, g);
@@ -793,7 +993,7 @@ function doorPos(s){ return s.b && s.b.door ? s.b.door : spotPos(s); }
 function spotZone(s){ return s.b ? ZONES[s.b.zone] : s.lm ? ZONES[s.lm.zone] : null; }
 function nearestList(k, fromKey){
   var res = dijkstra(SPOTS[fromKey].node);
-  return BUILDINGS.filter(function(b){ return b.f[k] && !b.closed; }).map(function(b){ return {b:b, d:res.dist[b.node]}; }).sort(function(a, c){ return a.d - c.d; });
+  return BUILDINGS.filter(function(b){ return b.f[k] && !b.closed; }).map(function(b){ return {b:b, d:Math.min.apply(null, entriesOf(SPOTS[b.key]).map(function(en){ return res.dist[en.node]; }))}; }).sort(function(a, c){ return a.d - c.d; });
 }
 /* room-code search: expands ranges like R501~R503 */
 var INDEX = [];
@@ -814,13 +1014,133 @@ function search(q){
   q = q.trim(); if (!q) return [];
   var Q = q.toUpperCase().replace(/\s+/g, ""), out = [];
   BUILDINGS.forEach(function(b){ if ((b.zh + b.en + b.code).toUpperCase().indexOf(Q) >= 0 && Q.length >= 1 && !/^\d/.test(Q)) out.push({b:b, floor:null, text:bName(b), score:0}); });
-  LANDMARKS.forEach(function(l){ if ((l.zh + l.en).toUpperCase().indexOf(Q) >= 0) out.push({lm:l, text:T(l), score:0}); });
+  LANDMARKS.forEach(function(l){
+    if ((l.zh + l.en).toUpperCase().indexOf(Q) >= 0) out.push({lm:l, text:T(l), score:0});
+    (l.places || []).forEach(function(x){ if ((x[0] + x[1]).toUpperCase().replace(/\s+/g, "").indexOf(Q) >= 0) out.push({lm:l, text:lang === "en" ? x[1] : x[0], score:1}); });
+  });
   INDEX.forEach(function(it){
     var hitCode = it.codes.indexOf(Q) >= 0, hitText = it.text.toUpperCase().indexOf(Q) >= 0;
     if (hitCode || hitText) out.push({b:it.b, floor:it.floor, text:it.text, score:hitCode ? 1 : 2});
   });
   out.sort(function(a, c){ return a.score - c.score; });
   return out.slice(0, 12);
+}
+
+/* ===================== EVENTS =====================
+   示範資料：正式上線時，請各單位更新這份清單。每筆活動用下面其中一種方式寫日期：
+     date:"2026-11-26"                      單日活動
+     dates:["2026-11-24","2026-12-01"]      指定的幾天
+     days:[1,3], from:"2026-09-14", to:"2027-01-15"
+                                            每週固定（0＝日、1＝一 … 6＝六），from／to 是起訖日期（可省略）
+   at：地點代碼（大樓 bldg-x、地標 spot-xxx、校門 gate1~4），可在下方 QR 清單查到
+   room：教室或位置（可省略）；tag：分類（見 EV_TAGS） */
+var EVENTS_SAMPLE = true;
+var SEM = {from:"2026-09-14", to:"2027-01-15"};   /* 115-1 學期（示範） */
+var EVENTS = [
+  /* 每週固定 */
+  {days:[1,2,3,4,5], from:SEM.from, to:SEM.to, start:"12:10", end:"13:00", at:"spot-speech", room:{zh:"English Corner", en:"English Corner"}, zh:"English Corner 英語聊天桌", en:"English Corner chat table", tag:"lang"},
+  {days:[2,4], from:SEM.from, to:SEM.to, start:"12:10", end:"13:00", at:"spot-speech", room:{zh:"Japanese Corner", en:"Japanese Corner"}, zh:"日語交流角", en:"Japanese conversation corner", tag:"lang"},
+  
+  /* 指定日期 */
+  {date:"2026-12-02", start:"13:00", end:"15:00", at:"R101", zh:"床編《把畫畫當飯吃，床編的創作生存術》", en:"Career Talk by Youtuber Bad Time Stories", tag:"講座"},
+;
+var EV_TAGS = {
+  lang:{zh:"語言", en:"Language", c:"#1F5FBF"}, show:{zh:"表演", en:"Show", c:"#C2185B"}, club:{zh:"社團", en:"Clubs", c:"#E36C0A"},
+  fun:{zh:"休閒", en:"Fun", c:"#0E8C8C"}, media:{zh:"媒體", en:"Media", c:"#6E45B8"}, care:{zh:"身心", en:"Wellbeing", c:"#2E7D32"},
+  talk:{zh:"講座", en:"Talk", c:"#6E45B8"}, sport:{zh:"運動", en:"Sports", c:"#0E8C8C"}, tour:{zh:"導覽", en:"Tour", c:"#2E7D32"}, study:{zh:"自習", en:"Study", c:"#1F5FBF"}
+};
+function pad2(n){ return (n < 10 ? "0" : "") + n; }
+function ymdOf(d){ return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+function todayYmd(){ return ymdOf(new Date()); }
+function addDays(ymd, n){ var p = ymd.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]); d.setDate(d.getDate() + n); return ymdOf(d); }
+function dateOf(ymd){ var p = ymd.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function dayLabel(ymd, short){
+  var d = dateOf(ymd);
+  if (lang === "en") return d.toLocaleDateString("en-US", short ? {month:"numeric", day:"numeric"} : {weekday:"short", month:"short", day:"numeric"});
+  return short ? (d.getMonth() + 1) + "/" + d.getDate() : (d.getMonth() + 1) + "月" + d.getDate() + "日（" + "日一二三四五六".charAt(d.getDay()) + "）";
+}
+function wdLabel(ymd){ var d = dateOf(ymd); return lang === "en" ? d.toLocaleDateString("en-US", {weekday:"short"}) : "日一二三四五六".charAt(d.getDay()); }
+function toMin(hm){ var a = hm.split(":"); return parseInt(a[0], 10) * 60 + parseInt(a[1], 10); }
+function onDate(e, ymd){
+  if (e.date) return e.date === ymd;
+  if (e.dates) return e.dates.indexOf(ymd) >= 0;
+  if (e.days) return e.days.indexOf(dateOf(ymd).getDay()) >= 0 && (!e.from || ymd >= e.from) && (!e.to || ymd <= e.to);
+  return false;
+}
+function eventsOn(ymd, at){
+  return EVENTS.filter(function(e){ return SPOTS[e.at] && onDate(e, ymd) && (!at || e.at === at); })
+    .sort(function(a, b){ return toMin(a.start) - toMin(b.start); });
+}
+function evStatus(e, ymd){
+  var t = todayYmd();
+  if (ymd > t) return "later";
+  if (ymd < t) return "done";
+  var n = new Date(), m = n.getHours() * 60 + n.getMinutes();
+  return m < toMin(e.start) ? "soon" : m <= toMin(e.end) ? "now" : "done";
+}
+function eventRow(e, ymd, showPlace, dateTxt){
+  var st = evStatus(e, ymd), tg = EV_TAGS[e.tag], en = lang === "en";
+  var stTxt = {now:en ? "On now" : "進行中", soon:en ? "Later today" : "稍後", done:en ? "Ended" : "已結束", later:""}[st];
+  var place = (showPlace ? spotName(e.at) : "") + (e.room ? (showPlace ? " · " : "") + T(e.room) : "");
+  var h = '<div class="ev ev-' + st + '"><div class="ev-time">' + (dateTxt ? '<span class="ev-date">' + esc(dateTxt) + "</span>" : "") + "<b>" + e.start + "</b><small>" + e.end + "</small></div>";
+  h += '<button type="button" class="ev-body" data-act="openspot" data-key="' + e.at + '"><strong>' + esc(T(e)) + "</strong>" + (place ? "<small>" + esc(place) + "</small>" : "");
+  h += '<span class="ev-meta">' + (tg ? '<i style="background:' + tg.c + '">' + esc(T(tg)) + "</i>" : "") + (stTxt ? '<em class="st-' + st + '">' + stTxt + "</em>" : "") + "</span></button>";
+  if (st !== "done") h += '<button class="btn" type="button" data-act="route" data-to="' + e.at + '">' + (en ? "Go" : "帶我去") + "</button>";
+  return h + "</div>";
+}
+function sampleNote(){ return EVENTS_SAMPLE ? '<p class="note" style="margin:8px 0 0">' + (lang === "en" ? "Sample events for this prototype; each office would keep its own up to date." : "示範資料：正式上線時由各單位更新活動。") + "</p>" : ""; }
+function eventsCard(){
+  var t = todayYmd(), list = eventsOn(t), live = list.filter(function(e){ return evStatus(e, t) !== "done"; }), en = lang === "en";
+  var h = '<section class="card"><div class="ev-head"><h2 style="margin:0">' + (en ? "Today on campus" : "今日活動") + ' <span class="note">' + esc(dayLabel(t)) + '</span></h2><button class="btn ghost" type="button" data-act="events">' + (en ? "Calendar" : "活動日曆") + "</button></div>";
+  if (!list.length) h += '<p class="note">' + (en ? "No events today." : "今天沒有活動。") + "</p>";
+  else if (!live.length) h += '<p class="note">' + (en ? "Today's events have ended. Open the calendar for the coming days." : "今天的活動都結束了，打開「活動日曆」看接下來幾天。") + "</p>";
+  else live.slice(0, 3).forEach(function(e){ h += eventRow(e, t, true, ""); });
+  return h + "</section>";
+}
+function eventsView(){
+  var t = todayYmd(), sel = state.evDate || t, list = eventsOn(sel), en = lang === "en";
+  var h = '<section class="card"><button type="button" class="back" data-act="back">← ' + (en ? "Back" : "返回") + "</button>";
+  h += '<h2 style="font-size:18px">' + (en ? "Event calendar" : "活動日曆") + "</h2>";
+  /* the next 14 days, with dots on days that have events */
+  h += '<div class="days" role="group" aria-label="' + (en ? "Pick a date" : "選擇日期") + '">';
+  for (var i = 0; i < 14; i++){
+    var d = addDays(t, i), n = eventsOn(d).length;
+    h += '<button type="button" data-act="evdate" data-d="' + d + '" aria-pressed="' + (d === sel) + '"><small>' + (i === 0 ? (en ? "Today" : "今天") : esc(wdLabel(d))) + "</small><b>" + esc(dayLabel(d, true)) + "</b>" + (n ? '<i aria-label="' + n + (en ? " events" : " 場活動") + '">' + n + "</i>" : "") + "</button>";
+  }
+  h += '</div><label class="pick">' + (en ? "Other date" : "其他日期") + ' <input type="date" id="ev-pick" value="' + sel + '"></label>';
+  h += '<h3 class="ev-day">' + esc(dayLabel(sel)) + (sel === t ? (en ? " · Today" : "・今天") : "") + '</h3>';
+  if (!list.length) h += '<p class="note">' + (en ? "No events on this day." : "這天沒有活動。") + "</p>";
+  list.forEach(function(e){ h += eventRow(e, sel, true, ""); });
+  h += '<p class="note" style="margin-top:8px">' + (en ? "Places with events on this day are highlighted on the map." : "地圖上會標出這天有活動的地點。") + "</p>";
+  return h + sampleNote() + "</section>";
+}
+function weeklyLabel(days){
+  var en = lang === "en", names = en ? ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"] : "日一二三四五六".split("");
+  var k = days.join(",");
+  if (k === "1,2,3,4,5") return en ? "Mon–Fri" : "每週一～五";
+  if (k === "6,0" || k === "0,6") return en ? "Weekends" : "每週六、日";
+  return en ? "Every " + days.map(function(d){ return names[d]; }).join(", ") : "每週" + days.map(function(d){ return names[d]; }).join("、");
+}
+function spotEvents(key){
+  /* this place: weekly events once each, then dated events in the next 30 days */
+  var t = todayYmd(), rows = [], seen = [];
+  EVENTS.forEach(function(e){
+    if (e.at !== key || !e.days || (e.to && e.to < t)) return;
+    var next = null; for (var i = 0; i < 7 && !next; i++){ var d = addDays(t, i); if (onDate(e, d) && evStatus(e, d) !== "done") next = d; }
+    if (next) rows.push([e, next, weeklyLabel(e.days)]);
+  });
+  for (var i = 0; i < 30; i++){
+    var d = addDays(t, i);
+    eventsOn(d, key).forEach(function(e){ if (!e.days && evStatus(e, d) !== "done" && rows.length < 8) rows.push([e, d, dayLabel(d, true) + " " + wdLabel(d)]); });
+  }
+  if (!rows.length) return "";
+  var h = '<h2 style="margin-top:14px">' + (lang === "en" ? "Coming up here" : "近期活動") + "</h2>";
+  rows.forEach(function(x){ h += eventRow(x[0], x[1], false, x[2]); });
+  return h + sampleNote();
+}
+function openSpot(key){
+  var sp = SPOTS[key]; if (!sp) return;
+  if (sp.b) openBuilding(sp.b.id); else if (sp.lm) openLandmark(key); else openRoute(key);
 }
 
 /* ===================== PANEL VIEWS ===================== */
@@ -976,12 +1296,15 @@ function tossCoin(){
   FX.coins.push({x0:x0, y0:y0, x1:x1, y1:y1, cx:(x0 + x1) / 2 + rnd(-30, 30), cy:Math.min(y0, y1) - 70, t:0, dur:48, big:big, done:finish});
   if (!FX.raf){ FX.last = 0; FX.raf = requestAnimationFrame(fxLoop); }
 }
+function lmIcon(l){ return {fountain:"⛲", cafe:"餐", plaza:"廣", elevator:"⇅"}[l.kind] || "◎"; }
 function landmarkView(){
   var l = SPOTS[state.lmKey] && SPOTS[state.lmKey].lm; if (!l) return homeView();
   var z = ZONES[l.zone];
   var h = '<section class="card"><button type="button" class="back" data-act="back">← ' + (lang === "en" ? "Back" : "返回") + "</button>";
-  h += '<div class="d-head"><span class="code" style="background:#B88A2E">' + (l.kind === "fountain" ? "⛲" : l.kind === "cafe" ? "餐" : "◎") + '</span><div><div class="d-name">' + esc(T(l)) + "</div>" + zonePill(l.zone) + "</div></div>";
+  h += '<div class="d-head"><span class="code" style="background:#B88A2E">' + lmIcon(l) + '</span><div><div class="d-name">' + esc(T(l)) + "</div>" + zonePill(l.zone) + "</div></div>";
   h += "<p>" + esc(T(l.desc)) + "</p>";
+  if (l.places){ h += '<h2 style="margin-top:12px">' + (lang === "en" ? (l.kind === "elevator" ? "Stops" : "Around here") : (l.kind === "elevator" ? "停靠樓層" : "這裡有")) + '</h2><ul class="places">' + l.places.map(function(x){ return "<li>" + esc(lang === "en" ? x[1] : x[0]) + "</li>"; }).join("") + "</ul>"; }
+  h += spotEvents(l.key);
   if (l.kind === "fountain") h += wishBlock();
   h += '<div class="row" style="margin:10px 0 4px"><button class="btn" type="button" data-act="route" data-to="' + l.key + '">' + (lang === "en" ? "Take me here" : "帶我到這裡") + '</button><button class="btn ghost" type="button" data-act="routefrom" data-from="' + l.key + '">' + (lang === "en" ? "Start from here" : "從這裡出發") + "</button></div>";
   h += '<div class="qrmini"><div class="qr" data-qr="' + l.key + '"></div><div><b style="font-size:14px">' + (lang === "en" ? "Landmark QR code" : "地標 QR code") + '</b><p class="note" style="margin:4px 0 0">' + (lang === "en" ? "Scanning it opens the map with this landmark as \u201cYou are here\u201d." : "掃描後，地圖會以這個地標作為「你在這裡」。") + "</p></div></div></section>";
@@ -989,7 +1312,7 @@ function landmarkView(){
 }
 function openRoute(toKey, opts){
   opts = opts || {};
-  var r = {from:opts.from || startKey(), to:toKey, feature:opts.feature || null, floor:opts.floor || null, text:opts.text || null};
+  var r = {from:opts.from || startKey(), to:toKey, feature:opts.feature || null, floor:opts.floor || null, text:opts.text || null, mode:opts.mode || (state.acc ? "acc" : "std")};
   go("route", {route:r, sel:SPOTS[toKey].b ? SPOTS[toKey].b.id : null});
   fitRoute();
 }
@@ -1000,6 +1323,7 @@ function render(){
   else if (state.view === "building") h = buildingView();
   else if (state.view === "route") h = routeView();
   else if (state.view === "landmark") h = landmarkView();
+  else if (state.view === "events") h = eventsView();
   panel.innerHTML = h;
   bindPanel();
   refreshMap();
@@ -1014,7 +1338,7 @@ function resultsHtml(){
   var r = search(state.query), h = "";
   if (state.query && !r.length) return '<p class="note">' + (lang === "en" ? "No match. Try a room code like S503 or a unit name." : "找不到。試試教室代碼（如 S503）或單位名稱。") + "</p>";
   r.forEach(function(x){
-    if (x.lm){ h += '<button type="button" class="res" data-act="openlm" data-key="' + x.lm.key + '"><span><strong>' + esc(T(x.lm)) + "</strong><small>" + (lang === "en" ? "Landmark" : "地標") + '</small></span><span class="btn">' + (lang === "en" ? "View" : "查看") + "</span></button>"; return; }
+    if (x.lm){ h += '<button type="button" class="res" data-act="openlm" data-key="' + x.lm.key + '"><span><strong>' + esc(x.text) + "</strong><small>" + (x.text !== T(x.lm) ? esc(T(x.lm)) : (lang === "en" ? "Landmark" : "地標")) + '</small></span><span class="btn">' + (lang === "en" ? "View" : "查看") + "</span></button>"; return; }
     var sub = bName(x.b) + (x.floor ? " · " + x.floor : "");
     h += '<button type="button" class="res" data-act="open" data-id="' + x.b.id + '"' + (x.floor ? ' data-floor="' + esc(x.floor) + '" data-text="' + esc(x.text) + '"' : "") + "><span><strong>" + esc(x.text) + "</strong><small>" + esc(sub) + '</small></span><span class="btn">' + (lang === "en" ? "View" : "查看") + "</span></button>";
   });
@@ -1062,7 +1386,7 @@ function zoneCard(){
   Object.keys(ZONES).forEach(function(k){ var z = ZONES[k]; h += '<button type="button" class="chip" data-act="zone" data-k="' + k + '" aria-pressed="' + (state.zone === k) + '"><span class="sw" style="background:' + z.color + '"></span>' + z.shape + " " + esc(T(z)) + "</button>"; });
   return h + "</div></section>";
 }
-function homeView(){ return searchCard() + hereCard() + filterCard() + zoneCard(); }
+function homeView(){ return searchCard() + hereCard() + eventsCard() + filterCard() + zoneCard(); }
 
 function floorFlags(text){
   var out = [];
@@ -1082,8 +1406,10 @@ function buildingView(){
   var tags = FEATURES.filter(function(f){ return b.f[f.k]; });
   if (tags.length){ h += '<div class="tags">'; tags.forEach(function(f){ var v = b.f[f.k]; h += '<span class="tag' + (f.k === "elev" || f.k === "ramp" ? " light" : "") + '">' + esc(T(f)) + (v === true ? "" : " " + esc(v)) + "</span>"; }); h += "</div>"; }
   if (b.entry) h += '<p class="construction" style="background:#FFF1E6;border-color:#E36C0A;color:#7A3A0A">' + (lang === "en" ? "Entrance: " : "入口：") + esc(T(b.entry)) + "</p>";
+  if (b.access) h += '<p class="access">♿ ' + esc(T(b.access)) + "</p>";
   if (b.note) h += '<p class="note">' + esc(T(b.note)) + "</p>";
   h += '<div class="row" style="margin:10px 0 4px"><button class="btn" type="button" data-act="route" data-to="' + b.key + '"' + (state.hitFloor ? ' data-floor="' + esc(state.hitFloor) + '" data-text="' + esc(state.hitText || "") + '"' : "") + ">" + (lang === "en" ? "Take me here" : "帶我到這裡") + '</button><button class="btn ghost" type="button" data-act="routefrom" data-from="' + b.key + '">' + (lang === "en" ? "Start from here" : "從這裡出發") + "</button></div>";
+  h += spotEvents(b.key);
   h += '<h2 style="margin-top:14px">' + (lang === "en" ? "Floors" : "樓層導覽") + (lang === "en" ? ' <span class="note">(room names in Chinese)</span>' : "") + '</h2><div class="floors">';
   b.floors.forEach(function(fl){
     var open = state.hitFloor === fl[0];
@@ -1096,33 +1422,93 @@ function buildingView(){
   h += '<div class="qrmini"><div class="qr" data-qr="' + b.key + '"></div><div><b style="font-size:14px">' + (lang === "en" ? "This building's QR code" : "本棟 QR code") + '</b><p class="note" style="margin:4px 0 0">' + (lang === "en" ? "Scanning it opens the map with this building as “You are here”." : "掃描後，地圖會以本棟作為「你在這裡」。") + "</p></div></div></section>";
   return h;
 }
-function routeSteps(r){
-  var from = SPOTS[r.from], to = SPOTS[r.to], steps = [];
-  var res = dijkstra(from.node), path = pathTo(res, to.node);
-  r.path = path;
-  steps.push({t:(lang === "en" ? "Start: " : "出發：") + T(from), kind:"start"});
-  if (r.from === r.to){
-    steps.push({t:lang === "en" ? "You are already in this building." : "你已經在這棟樓。", kind:"mid"});
-  } else if (from.node === to.node){
-    var rs = (from.b && to.b && /^(R|S)$/.test(from.b.id) && /^(R|S)$/.test(to.b.id));
-    steps.push({t:rs ? (lang === "en" ? "R and S are connected inside; walk straight through." : "R 與 S 室內相通，直接走過去。") : (lang === "en" ? "They share the same entrance path; it is right next door." : "兩處在同一出入口旁，步行即達。"), kind:"mid"});
-  } else {
-    path.forEach(function(k, i){
-      if ((i === 0 && from.node === k) || (i === path.length - 1 && to.node === k)) return;
-      if (/^g/.test(k) && i !== 0 && i !== path.length - 1) return;
-      steps.push({t:(lang === "en" ? "Pass " : "經過 ") + T(NODES[k]), kind:"mid"});
-    });
-  }
-  if (to.b && to.b.entry && !(from.b && from.b.entry)) steps.push({t:(lang === "en" ? "Enter at S 1F, next to the cafeteria (shared R/S elevators)" : "從 S 棟 1F 入口進入（學餐旁，R、S 共用電梯）"), kind:"mid"});
-  var last = (lang === "en" ? "Arrive: " : "抵達：") + T(to);
+function entriesOf(sp){ var x = sp.b || sp.lm; return x && x.entries ? x.entries : [{node:sp.node}]; }
+function lvl(k){ return NODES[k].z || 0; }
+function targetFloor(r, to){
   var fl = r.floor || (r.feature && to.b && typeof to.b.f[r.feature] === "string" ? to.b.f[r.feature] : null);
-  if (fl && /\d/.test(fl) && fl !== "1F"){
-    last += lang === "en" ? " → take the elevator to " + fl : " → 搭電梯到 " + fl;
+  if (!fl) return null;
+  if (/\d/.test(fl) || entriesOf(to).some(function(e){ return e.fl === fl; })) return fl;
+  return null;
+}
+function planRoute(r){
+  var from = SPOTS[r.from], to = SPOTS[r.to], res = dijkstra(from.node, r.mode === "acc"), best = null;
+  var tf = targetFloor(r, to), tf1 = tf ? tf.split(/[・、\s]/)[0] : null, ents = entriesOf(to);
+  /* a floor that has its own entrance goes there; otherwise use the main entrance (the first one listed) */
+  var exact = tf ? ents.filter(function(e){ return e.fl === tf && res.dist[e.node] < Infinity; }) : [];
+  if (exact.length) ents = exact;
+  else if (!tf) ents = ents.filter(function(e, i){ return i === 0 || e.main; });
+  ents.forEach(function(en){
+    var d = res.dist[en.node]; if (d === Infinity) return;
+    if (tf && (en.fl || "1F") !== tf && (en.fl || "1F") !== tf1) d += 30;   /* an inside elevator is still needed */
+    if (!best || d < best.d) best = {d:d, en:en};
+  });
+  return best ? {en:best.en, path:pathTo(res, best.en.node)} : null;
+}
+function routeSteps(r){
+  var en = lang === "en", from = SPOTS[r.from], to = SPOTS[r.to], steps = [];
+  var plan = planRoute(r);
+  r.path = plan ? plan.path : [from.node]; r.entry = plan ? plan.en : null; r.noPath = !plan; r.stairs = false; r.key = [];
+  steps.push({t:(en ? "Start: " : "出發：") + T(from), kind:"start"});
+  if (!plan){
+    steps.push({t:en ? "No step-free route is on record yet. Ask at the nearest office, or switch to the regular route." : "目前沒有已確認的無障礙路線。可向附近單位詢問，或改看一般路線。", kind:"warn"});
+    return steps;
   }
+  var path = plan.path;
+  if (r.from === r.to){
+    steps.push({t:en ? "You are already here." : "你已經在這裡。", kind:"mid"});
+  } else if (path.length === 1){
+    var rs = (from.b && to.b && /^(R|S)$/.test(from.b.id) && /^(R|S)$/.test(to.b.id));
+    steps.push({t:rs ? (en ? "R and S are connected inside; walk straight through." : "R 與 S 室內相通，直接走過去。") : (en ? "They share the same entrance path; it is right next door." : "兩處在同一出入口旁，步行即達。"), kind:"mid"});
+  } else {
+    for (var i = 1; i < path.length; i++){
+      var a = path[i-1], k = path[i], at = EATTR[a + "|" + k] || {}, nk = NODES[k];
+      if (at.elev){
+        var t1 = (en ? "Take " + T(at.elev) + " to " : "搭" + T(at.elev) + "到 ") + nk.fl;
+        steps.push({t:t1, kind:"elev"}); r.key.push(t1); continue;
+      }
+      if (at.steep){
+        var upR = lvl(k) > lvl(a); r.stairs = true;
+        var t4 = en ? (upR ? "Walk up " : "Walk down ") + T(at.steep) + " (quite steep)" : "走" + T(at.steep) + (upR ? "上去" : "下來") + "（坡度較陡）";
+        steps.push({t:t4, kind:"stairs"}); r.key.push(t4); continue;
+      }
+      if (at.stairs){
+        var up = lvl(k) > lvl(a); r.stairs = true;
+        var t2 = en ? (up ? "Climb " : "Go down ") + T(at.stairs) + " one level to " + T(nk) : "走" + T(at.stairs) + (up ? "上一層" : "下一層") + "，到" + (/^[0-9A-Za-z]/.test(T(nk)) ? " " : "") + T(nk);
+        steps.push({t:t2, kind:"stairs"}); r.key.push(t2); continue;
+      }
+      if (i === path.length - 1) continue;
+      var nx = path[i+1], nxt = EATTR[k + "|" + nx] || {};
+      if (nxt.elev || nxt.stairs) continue;              /* the ride or the stairs step names this spot */
+      if (/^g/.test(k) && !nk.link) continue;            /* do not route through a gate */
+      if (nk.quiet) continue;
+      if (nk.link){ var t3 = en ? "Follow the " + T(nk) : "沿 " + T(nk) + "走"; steps.push({t:t3, kind:"mid"}); r.key.push(t3); }
+      else steps.push({t:(en ? "Pass " : "經過 ") + T(nk), kind:"mid"});
+    }
+  }
+  if (to.b && to.b.entry && !(from.b && from.b.entry)) steps.push({t:(en ? "Enter at S 1F, next to the cafeteria (shared R/S elevators)" : "從 S 棟 1F 入口進入（學餐旁，R、S 共用電梯）"), kind:"mid"});
+  var last = (en ? "Arrive: " : "抵達：") + T(to);
+  if (plan.en && plan.en.zh) last += en ? " · " + plan.en.en : "・" + plan.en.zh;
+  var fl = targetFloor(r, to), here = (plan.en && plan.en.fl) || "1F";
+  if (fl && fl !== here) last += en ? " → take the elevator to " + fl : " → 搭電梯到 " + fl;
   if (r.text) last += "（" + r.text + "）";
   else if (r.feature) last += " · " + T(feat(r.feature));
   steps.push({t:last, kind:"end"});
   return steps;
+}
+function recommendCard(r, to){
+  var en = lang === "en", h = '<div class="reco"><div class="reco-h">♿ ' + (en ? "Recommended step-free way" : "最推薦走法") + "</div>";
+  if (r.noPath){ return h + "<p>" + (en ? "No step-free route is on record yet." : "目前還沒有已確認的無障礙路線。") + "</p></div>"; }
+  h += "<p><b>" + esc(r.key.length ? r.key.join(en ? " → " : " → ") : (en ? "Follow the main campus road; no known stairs on the way." : "沿校內主要道路走，不經過已知的樓梯。")) + "</b></p>";
+  var tips = [], b = to.b;
+  if (b){
+    if (b.f.elev) tips.push(en ? "Elevator inside" : "大樓內有無障礙電梯");
+    if (b.f.ramp) tips.push(b.id === "ADM" ? (en ? "Ramp to 1F (steep): a backup if the elevator is out of service" : "斜坡可上 1F（較陡），電梯暫停時可作為備案") : (en ? "Ramp at the entrance" : "入口有坡道"));
+    if (b.f.acc) tips.push((en ? "Accessible restroom " : "無障礙廁所 ") + b.f.acc);
+    else { var n = nearestList("acc", r.to)[0]; if (n) tips.push((en ? "Nearest accessible restroom: " : "最近的無障礙廁所：") + bName(n.b) + " " + fval(n.b.f.acc)); }
+    if (b.access) tips.push(T(b.access));
+  } else if (to.lm && to.lm.kind === "elevator"){ tips.push(T(to.lm.desc)); }
+  if (tips.length) h += '<ul class="reco-tips">' + tips.map(function(t){ return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>";
+  return h + '<p class="note" style="margin:6px 0 0">' + (en ? "Step-free links come from what we know so far; slopes and surfaces are still to be checked on site." : "無障礙路段依目前資料整理，坡度與路面待實地確認。") + "</p></div>";
 }
 function routeView(){
   var r = state.route; if (!r) return homeView();
@@ -1130,11 +1516,15 @@ function routeView(){
   var h = '<section class="card"><button type="button" class="back" data-act="back">← ' + (lang === "en" ? "Back" : "返回") + "</button>";
   h += '<h2 style="font-size:18px">' + (lang === "en" ? "Directions" : "帶我去") + "</h2>";
   h += '<div class="plan"><label for="r-from">' + (lang === "en" ? "From" : "從") + '<select id="r-from">' + (state.here ? '<option value="' + state.here + '"' + (r.from === state.here ? " selected" : "") + ">" + (lang === "en" ? "My location · " : "我的位置・") + esc(spotName(state.here)) + "</option>" : "") + spotOptions(r.from) + '</select></label><button type="button" class="swap" data-act="swap" aria-label="' + (lang === "en" ? "Swap start and destination" : "交換起點與終點") + '">⇅</button><label for="r-to">' + (lang === "en" ? "To" : "到") + '<select id="r-to">' + spotOptions(r.to) + "</select></label></div>";
+  var en = lang === "en", acc = r.mode === "acc";
+  h += '<div class="seg" role="group" aria-label="' + (en ? "Route type" : "路線類型") + '"><button type="button" data-act="mode" data-m="std" aria-pressed="' + !acc + '">' + (en ? "Regular" : "一般路線") + '</button><button type="button" data-act="mode" data-m="acc" aria-pressed="' + acc + '">♿ ' + (en ? "Step-free" : "無障礙路線") + "</button></div>";
   var steps = routeSteps(r);
+  if (acc) h += recommendCard(r, to);
+  else if (r.stairs) h += '<p class="hint-stairs">' + (en ? "This route has stairs or a steep ramp. Switch to <b>Step-free</b> to go by elevator." : "這條路有樓梯或較陡的斜坡。切換到<b>無障礙路線</b>，可改搭電梯。") + "</p>";
   h += '<div class="follow" style="background:' + zc.color + (zc.dark ? ';color:#3A2A00' : '') + '">' + (lang === "en" ? "Follow the " + zc.shape + " " + T(zc) + " line" : "跟著 " + zc.shape + " " + T(zc) + " 色線走") + "</div>";
   h += '<ol class="steps">';
   steps.forEach(function(s, i){
-    var bg = s.kind === "start" ? "#D7263D" : s.kind === "end" ? zc.color : "#8A9492";
+    var bg = s.kind === "start" ? "#D7263D" : s.kind === "end" ? zc.color : s.kind === "elev" ? "#0E7490" : s.kind === "stairs" ? "#C2410C" : s.kind === "warn" ? "#7A2E2E" : "#8A9492";
     h += '<li><span class="dot" style="background:' + bg + '">' + (i + 1) + "</span><span>" + esc(s.t) + "</span></li>";
   });
   h += "</ol>";
@@ -1153,6 +1543,8 @@ function bindPanel(){
   if (q){ q.addEventListener("input", function(){ state.query = q.value; document.getElementById("results").innerHTML = resultsHtml(); }); }
   var ds = document.getElementById("demo-sel");
   if (ds) ds.addEventListener("change", function(e){ if (e.target.value) location.hash = e.target.value; else { try { history.replaceState(null, "", location.pathname + location.search); } catch (er) {} setHere(null); } });
+  var evp = document.getElementById("ev-pick");
+  if (evp) evp.addEventListener("change", function(){ if (/^\d{4}-\d{2}-\d{2}$/.test(evp.value)){ state.evDate = evp.value; render(); } });
   var rf = document.getElementById("r-from"), rt = document.getElementById("r-to");
   if (rf) rf.addEventListener("change", function(){ state.route.from = rf.value; state.route.floor = null; state.route.text = null; render(); fitRoute(); });
   if (rt) rt.addEventListener("change", function(){ state.route.to = rt.value; state.route.feature = null; state.route.floor = null; state.route.text = null; state.sel = SPOTS[rt.value].b ? SPOTS[rt.value].b.id : null; render(); fitRoute(); });
@@ -1164,11 +1556,15 @@ document.addEventListener("click", function(e){
   if (a === "back") goBackButton();
   else if (a === "openlm") openLandmark(t.getAttribute("data-key"));
   else if (a === "open") openBuilding(t.getAttribute("data-id"), t.getAttribute("data-floor"), t.getAttribute("data-text"));
-  else if (a === "route") openRoute(t.getAttribute("data-to"), {feature:t.getAttribute("data-feature"), floor:t.getAttribute("data-floor"), text:t.getAttribute("data-text")});
+  else if (a === "route") openRoute(t.getAttribute("data-to"), {feature:t.getAttribute("data-feature"), floor:t.getAttribute("data-floor"), text:t.getAttribute("data-text"), mode:t.getAttribute("data-feature") === "acc" ? "acc" : null});
+  else if (a === "mode"){ state.route.mode = t.getAttribute("data-m"); state.acc = state.route.mode === "acc"; render(); fitRoute(); }
   else if (a === "routefrom"){ var from = t.getAttribute("data-from"), to = from === "gate1" ? "bldg-r" : (startKey() === from ? "gate1" : startKey()); openRoute(to, {from:from}); }
   else if (a === "swap"){ var r = state.route, f = r.from; r.from = r.to; r.to = f; r.feature = null; r.floor = null; r.text = null; state.sel = SPOTS[r.to].b ? SPOTS[r.to].b.id : null; render(); fitRoute(); }
   else if (a === "filter"){ var k = t.getAttribute("data-k"); state.filter = state.filter === k ? null : k; state.zone = null; render(); }
   else if (a === "wish") tossCoin();
+  else if (a === "events"){ state.evDate = todayYmd(); go("events", {sel:null}); zoomTo([base.x + base.w/2, base.y + base.h/2], 1); }
+  else if (a === "evdate"){ state.evDate = t.getAttribute("data-d"); render(); }
+  else if (a === "openspot") openSpot(t.getAttribute("data-key"));
   else if (a === "zone"){ var zk = t.getAttribute("data-k"); state.zone = state.zone === zk ? null : zk; state.filter = null; render(); }
 });
 
@@ -1176,16 +1572,18 @@ document.addEventListener("click", function(e){
 var walker = null, walkerRaf = null;
 function refreshMap(){
   var routing = state.view === "route" && state.route;
+  var evAt = {}; if (state.view === "events") eventsOn(state.evDate || todayYmd()).forEach(function(e){ evAt[e.at] = (evAt[e.at] || 0) + 1; });
   BUILDINGS.forEach(function(b){
     var dim = false;
     if (state.view === "home"){ if (state.filter && !b.f[state.filter]) dim = true; if (state.zone && b.zone !== state.zone) dim = true; }
+    if (state.view === "events" && !evAt[b.key]) dim = true;
     var on = state.sel === b.id || (routing && (SPOTS[state.route.from].b === b));
     if (!dim && state.view === "home" && (state.filter || state.zone)) {}
     (bldEls[b.id] || []).forEach(function(g){ g.classList.toggle("dim", dim); g.classList.toggle("sel", on); });
     if (lblEls[b.id]){ lblEls[b.id].classList.toggle("dim", dim); lblEls[b.id].classList.toggle("show", on || (state.view === "home" && state.filter && !dim)); }
   });
   LANDMARKS.forEach(function(l){
-    var dimL = state.view === "home" && (state.filter || (state.zone && state.zone !== l.zone));
+    var dimL = (state.view === "home" && (state.filter || (state.zone && state.zone !== l.zone))) || (state.view === "events" && !evAt[l.key]);
     (bldEls[l.id] || []).forEach(function(g){ g.classList.toggle("dim", !!dimL); });
     var lb = layers.labels.querySelector('.lm-lbl[data-id="' + l.id + '"]'); if (lb) lb.classList.toggle("dim", !!dimL);
   });
@@ -1202,13 +1600,20 @@ function refreshMap(){
       el("text", {x:top[0]+20+w/2, y:top[1]+3, "text-anchor":"middle", "font-size":13, "font-weight":700, fill:"#fff"}, g).textContent = txt;
     });
   }
+  Object.keys(evAt).forEach(function(k){
+    var sp = SPOTS[k], c = spotPos(sp), z = sp.b ? sp.b.fl*FLOOR + (sp.b.tower ? 10 : 0) + 34 : sp.lm ? 40 : 30, top = P(c[0], c[1], z);
+    var txt = (lang === "en" ? "★ " + evAt[k] + (evAt[k] > 1 ? " events" : " event") : "★ " + evAt[k] + " 場活動"), w = textW(txt, 13) + 18;
+    var g = el("g", {"class":"dyn ev-pin", "aria-hidden":"true"}, layers.pins);
+    el("rect", {x:top[0]-w/2, y:top[1]-13, width:w, height:25, rx:12.5, fill:"#E11D74", stroke:"#fff", "stroke-width":2}, g);
+    el("text", {x:top[0], y:top[1]+4, "text-anchor":"middle", "font-size":13, "font-weight":900, fill:"#fff"}, g).textContent = txt;
+  });
   if (routing){
     var r = state.route; routeSteps(r);
     var from = SPOTS[r.from], to = SPOTS[r.to], zc2 = spotZone(to), color = zc2 ? zc2.color : "#2E7D32";
     var line = [];
-    if (from.b || from.lm){ var fc = doorPos(from); line.push(P(fc[0], fc[1])); }
-    r.path.forEach(function(k){ line.push(P(NODES[k].p[0], NODES[k].p[1])); });
-    if (to.b || to.lm){ var tc = doorPos(to); line.push(P(tc[0], tc[1])); }
+    if ((from.b || from.lm) && !lvl(r.path[0]) && !(from.lm && from.lm.kind === "elevator")){ var fc = doorPos(from); line.push(P(fc[0], fc[1])); }
+    r.path.forEach(function(k){ line.push(P(NODES[k].p[0], NODES[k].p[1], lvl(k)*LV)); });
+    if ((to.b || to.lm) && !lvl(r.path[r.path.length-1]) && !(to.lm && to.lm.kind === "elevator")){ var tc = doorPos(to); line.push(P(tc[0], tc[1])); }
     if (line.length >= 2){
       el("polyline", {points:pts(line), fill:"none", stroke:"#fff", "stroke-width":13, "stroke-linecap":"round", "stroke-linejoin":"round"}, layers.route);
       el("polyline", {"class":"march", points:pts(line), fill:"none", stroke:color, "stroke-width":7.5, "stroke-linecap":"round", "stroke-linejoin":"round", "stroke-dasharray":"14 14"}, layers.route);
@@ -1251,7 +1656,7 @@ function animateWalker(line){
 }
 function fitRoute(){
   var r = state.route; if (!r || !r.path) return;
-  var ptsA = r.path.map(function(k){ return P(NODES[k].p[0], NODES[k].p[1]); });
+  var ptsA = r.path.map(function(k){ return P(NODES[k].p[0], NODES[k].p[1], lvl(k)*LV); });
   [SPOTS[r.from], SPOTS[r.to]].forEach(function(s){ var c = spotPos(s); ptsA.push(P(c[0], c[1], s.b ? s.b.fl*FLOOR : 20)); });
   var xs = ptsA.map(function(a){ return a[0]; }), ys = ptsA.map(function(a){ return a[1]; });
   var span = Math.max((Math.max.apply(null, xs) - Math.min.apply(null, xs)) / base.w, (Math.max.apply(null, ys) - Math.min.apply(null, ys)) / base.h);
